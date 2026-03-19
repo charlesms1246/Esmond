@@ -38,23 +38,26 @@ export async function GET() {
       toBlock:   "latest",
     });
 
-    return NextResponse.json({
-      plans: planLogs.map((l: any) => ({
-        id:           String(l.args.planId),
-        provider:     l.args.provider,
-        token:        l.args.token,
-        chargeAmount: String(l.args.chargeAmount),
-        interval:     String(l.args.interval),
-      })),
-      subscriptions: subLogs.map((l: any) => ({
-        id:          String(l.args.subscriptionId),
-        subscriber:  l.args.subscriber,
-        planId:      String(l.args.planId),
-        approvedCap: String(l.args.approvedCap),
-      })),
-      totalPlans: Number(planCount),
-      totalSubs:  Number(subCount),
-    });
+    return NextResponse.json(
+      {
+        plans: planLogs.map((l: any) => ({
+          id:           String(l.args.planId),
+          provider:     l.args.provider,
+          token:        l.args.token,
+          chargeAmount: String(l.args.chargeAmount),
+          interval:     String(l.args.interval),
+        })),
+        subscriptions: subLogs.map((l: any) => ({
+          id:          String(l.args.subscriptionId),
+          subscriber:  l.args.subscriber,
+          planId:      String(l.args.planId),
+          approvedCap: String(l.args.approvedCap),
+        })),
+        totalPlans: Number(planCount),
+        totalSubs:  Number(subCount),
+      },
+      { headers: { "Cache-Control": "no-store, max-age=0" } },
+    );
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

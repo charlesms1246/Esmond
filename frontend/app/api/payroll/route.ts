@@ -50,10 +50,10 @@ export async function GET() {
       active:         emp.active,
     }));
 
-    return NextResponse.json({
-      employees: dtos,
-      total:     Number(count),
-    });
+    return NextResponse.json(
+      { employees: dtos, total: Number(count) },
+      { headers: { "Cache-Control": "no-store, max-age=0" } },
+    );
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
