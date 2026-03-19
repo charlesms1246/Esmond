@@ -1,19 +1,28 @@
-// frontend/app/layout.tsx
 import type { Metadata } from "next";
+import "./globals.css";
+import { Providers } from "@/components/Providers";
+import { NavBar }    from "@/components/NavBar";
 
 export const metadata: Metadata = {
-  title:       "Esmond — Polkadot Payment Infrastructure",
-  description: "Payroll, escrow, and subscription management on Polkadot Asset Hub",
+  title:       "Esmond — Programmable Payment Engine",
+  description: "On-chain payroll, milestone escrow, and subscription billing on Polkadot Hub",
+  icons:       { icon: "/favicon.ico" },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" className="dark">
+      <body className="min-h-screen flex flex-col">
+        <Providers>
+          <NavBar />
+          <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+            {children}
+          </main>
+          <footer className="border-t border-[var(--border)] py-6 text-center text-sm text-[var(--text-muted)]">
+            Esmond · Polkadot Hub Testnet (Paseo) · Chain ID: 420420417
+          </footer>
+        </Providers>
+      </body>
     </html>
   );
 }

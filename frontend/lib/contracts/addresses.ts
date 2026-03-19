@@ -56,6 +56,14 @@ export const TOKEN_CONFIG: Record<SupportedToken, {
   mUSDT: { address: PRECOMPILES.MOCK_USDT, assetId: ASSET_IDS.MOCK_USDT, decimals: 6, symbol: "mUSDT" },
 };
 
+// ─── Test Token (MockERC20) ───────────────────────────────────────────────
+// Deployed by AGT-07 to unblock integration tests (asset-1984 precompile has
+// zero supply — 3rd-party admin). Components use this for all write-path calls.
+// Falls back to PRECOMPILES.MOCK_USDC if env var is absent.
+export const MOCK_ERC20_ADDRESS = (
+  process.env.NEXT_PUBLIC_MOCK_ERC20_ADDRESS ?? PRECOMPILES.MOCK_USDC
+) as `0x${string}`;
+
 // ─── Parachain IDs ───────────────────────────────────────────────────────
 export const PARACHAIN_IDS = {
   HUB:       0,
