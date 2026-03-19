@@ -1,8 +1,8 @@
 {
   "network": "paseo",
-  "chainId": 420420422,
+  "chainId": 420420417,
   "precompiles": {
-    "xcm":            "0x00000000000000000000000000000000000A0000",
+    "xcm": "0x00000000000000000000000000000000000A0000",
     "erc20_mockUsdc": "0xFFFFFFFF000000000000000000000000000007C0",
     "erc20_mockUsdt": "0xFFFFFFFF00000000000000000000000000000539"
   },
@@ -11,13 +11,18 @@
     "mockUsdt": 1337
   },
   "contracts": {
-    "PayrollScheduler":         "NOT_DEPLOYED",
-    "PayrollSchedulerFallback": "NOT_DEPLOYED",
-    "PayrollVault":             "NOT_DEPLOYED",
-    "ConditionalEscrow":        "NOT_DEPLOYED",
-    "SubscriptionManager":      "NOT_DEPLOYED"
+    "PayrollScheduler": "NOT_DEPLOYED",
+    "PayrollSchedulerFallback": "0x4AF0E18ec88C5EE520378e1c2ad65862120E4bCB",
+    "PayrollVault": "NOT_DEPLOYED",
+    "ConditionalEscrow": "NOT_DEPLOYED",
+    "SubscriptionManager": "NOT_DEPLOYED"
   },
-  "activeScheduler": "NOT_SET",
-  "activeSchedulerAddress": "NOT_SET",
-  "_note": "Run scripts/deploy/01-04 in order to populate this file"
+  "activeScheduler": "PayrollSchedulerFallback",
+  "activeSchedulerAddress": "0x4AF0E18ec88C5EE520378e1c2ad65862120E4bCB",
+  "_note": "Run scripts/deploy/01-04 in order to populate this file",
+  "deployedAt": "2026-03-19T09:10:14.888Z",
+  "deployerAddress": "0xc618931C93cae544608347a7b733607A25BB20Ff",
+  "step1_completed": "2026-03-19T09:10:14.889Z",
+  "updatedAt": "2026-03-19T09:11:57.181Z",
+  "step2_completed": "2026-03-19T09:11:57.181Z"
 }

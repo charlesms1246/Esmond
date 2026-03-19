@@ -14,11 +14,11 @@ const config: HardhatUserConfig = {
   },
   networks: {
     hardhat: {
-      chainId: 420420422,
+      chainId: 420420417,
     },
     paseo: {
-      chainId: 420420422,
-      url: process.env.PASEO_RPC_URL || "https://testnet-passet-hub-eth-rpc.polkadot.io",
+      chainId: 420420417,
+      url: process.env.PASEO_RPC_URL || "https://eth-rpc-testnet.polkadot.io/",
       accounts: process.env.DEPLOYER_PRIVATE_KEY
         ? [process.env.DEPLOYER_PRIVATE_KEY]
         : [],
@@ -29,7 +29,7 @@ const config: HardhatUserConfig = {
     apiKey: { paseo: "no-api-key-needed" },
     customChains: [{
       network: "paseo",
-      chainId: 420420422,
+      chainId: 420420417,
       urls: {
         apiURL:     "https://blockscout-passet-hub.parity-testnet.parity.io/api",
         browserURL: "https://blockscout-passet-hub.parity-testnet.parity.io",

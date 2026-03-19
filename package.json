@@ -7,7 +7,7 @@
     "test": "hardhat test",
     "test:gas": "REPORT_GAS=true hardhat test",
     "deploy:step1": "npx ts-node scripts/deploy/01_register_mock_assets.ts",
-    "deploy:step2": "npx ts-node scripts/deploy/02_deploy_rust_scheduler.ts",
+    "deploy:step2": "hardhat run scripts/deploy/02_deploy_rust_scheduler.ts --network paseo",
     "deploy:step3": "hardhat run scripts/deploy/03_deploy_solidity_contracts.ts --network paseo",
     "deploy:verify": "npx ts-node scripts/deploy/04_verify_deployment.ts",
     "deploy:paseo": "hardhat run scripts/deploy/03_deploy_solidity_contracts.ts --network paseo",
@@ -24,6 +24,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "@polkadot/api": "^16.5.4",
     "polkadot-api": "^1.23.3"
   }
 }
