@@ -8,10 +8,17 @@ import type { JsonRpcProvider, TransactionReceipt } from "ethers";
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
 // ─── Network constants ────────────────────────────────────────────────────────
-export const PASEO_CHAIN_ID       = 420420422;
-export const PASEO_RPC            = process.env.PASEO_RPC_URL  || "https://testnet-passet-hub-eth-rpc.polkadot.io";
-export const PASEO_WS             = process.env.PASEO_WS_URL   || "wss://passet-hub-rpc.polkadot.io";
-export const BLOCKSCOUT_URL       = "https://blockscout-passet-hub.parity-testnet.parity.io";
+export const PASEO_CHAIN_ID = 420420417;
+
+// Paseo Asset Hub EVM RPC (Ethereum-compatible JSON-RPC, chainId 420420417)
+export const PASEO_EVM_RPC  = process.env.PASEO_RPC_URL || "https://eth-rpc-testnet.polkadot.io/";
+// Keep PASEO_RPC as an alias for backwards compatibility with script 03/04
+export const PASEO_RPC      = PASEO_EVM_RPC;
+
+// Paseo Asset Hub native Substrate WebSocket (for @polkadot/api and PAPI)
+export const PASEO_WS       = process.env.PASEO_WS_URL  || "wss://passet-hub-rpc.polkadot.io";
+
+export const BLOCKSCOUT_URL = "https://blockscout-passet-hub.parity-testnet.parity.io";
 
 // ─── Precompile addresses (do not modify) ─────────────────────────────────────
 // XCM precompile — from polkadot-sdk pallet-xcm
