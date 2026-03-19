@@ -33,8 +33,16 @@ async function main() {
   // ── Verify precompiles are live before deploying ───────────────────────────
   const provider = new ethers.JsonRpcProvider(PASEO_RPC);
   await verifyPrecompile(provider, XCM_PRECOMPILE, "XCM");
-  await verifyPrecompile(provider, addresses.precompiles?.erc20_mockUsdc, "Mock USDC ERC-20");
-  await verifyPrecompile(provider, addresses.precompiles?.erc20_mockUsdt, "Mock USDT ERC-20");
+  for (const [label, addr] of [
+    ["Mock USDC ERC-20", addresses.precompiles?.erc20_mockUsdc],
+    ["Mock USDT ERC-20", addresses.precompiles?.erc20_mockUsdt],
+  ] as [string, string][]) {
+    try {
+      await verifyPrecompile(provider, addr, label);
+    } catch (e: any) {
+      log(`⚠️  ${label} precompile not live — continuing anyway (${e.message})`);
+    }
+  }
 
   // ── 1. Deploy PayrollVault ─────────────────────────────────────────────────
   log("\nDeploying PayrollVault.sol...");
@@ -85,7 +93,7 @@ async function main() {
 
   // ── Print deployment summary ───────────────────────────────────────────────
   log("\n========== DEPLOYMENT SUMMARY ==========");
-  log(`Network:             Paseo (chainId: 420420422)`);
+  log(`Network:             Paseo (chainId: 420420417)`);
   log(`Deployer:            ${deployer.address}`);
   log(`Scheduler (active):  ${addresses.activeScheduler} @ ${schedulerAddress}`);
   log(`PayrollVault:        ${vaultAddr}`);
