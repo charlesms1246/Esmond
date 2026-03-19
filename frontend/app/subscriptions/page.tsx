@@ -29,7 +29,7 @@ export default function SubscriptionsPage() {
     setLoading(true);
     fetch("/api/subscriptions")
       .then(r => r.json())
-      .then(d => setData(d))
+      .then(d => setData({ plans: d.plans ?? [], subscriptions: d.subscriptions ?? [] }))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [planStatus.status, subStatus.status]);

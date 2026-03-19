@@ -7,11 +7,14 @@ import { SUBSCRIPTION_MANAGER_ABI, ERC20_ABI }        from "@/lib/contracts/abis
 import { getContractAddresses }                       from "@/lib/contracts/addresses";
 import type { TxStatus }                              from "@/lib/types";
 
-const SUB_ADDRESS = getContractAddresses().SubscriptionManager;
+let _subAddress: `0x${string}` | null = null;
+function subAddress() {
+  return (_subAddress ??= getContractAddresses().SubscriptionManager);
+}
 
 export function usePlanCount() {
   return useReadContract({
-    address:      SUB_ADDRESS,
+    address:      subAddress(),
     abi:          SUBSCRIPTION_MANAGER_ABI,
     functionName: "planCount",
     query:        { refetchInterval: 6000 },
@@ -32,7 +35,7 @@ export function useCreatePlan() {
     setTxStatus({ status: "pending" });
     try {
       const hash = await writeContractAsync({
-        address:      SUB_ADDRESS,
+        address:      subAddress(),
         abi:          SUBSCRIPTION_MANAGER_ABI,
         functionName: "createPlan",
         args:         [params.token, params.chargeAmount, params.interval, params.maxCharges, params.expiry],
@@ -65,13 +68,13 @@ export function useSubscribe() {
         address:      params.token,
         abi:          ERC20_ABI,
         functionName: "approve",
-        args:         [SUB_ADDRESS, params.approvedCap],
+        args:         [subAddress(), params.approvedCap],
         gas:          200_000n,
       });
 
       // Step 2: subscribe
       const hash = await writeContractAsync({
-        address:      SUB_ADDRESS,
+        address:      subAddress(),
         abi:          SUBSCRIPTION_MANAGER_ABI,
         functionName: "subscribe",
         args:         [params.planId, params.approvedCap],
@@ -92,7 +95,7 @@ export function useCharge() {
   const { writeContractAsync } = useWriteContract();
   return useCallback(async (subscriptionId: bigint) => {
     return writeContractAsync({
-      address:      SUB_ADDRESS,
+      address:      subAddress(),
       abi:          SUBSCRIPTION_MANAGER_ABI,
       functionName: "charge",
       args:         [subscriptionId],
@@ -105,7 +108,7 @@ export function useRevoke() {
   const { writeContractAsync } = useWriteContract();
   return useCallback(async (subscriptionId: bigint) => {
     return writeContractAsync({
-      address:      SUB_ADDRESS,
+      address:      subAddress(),
       abi:          SUBSCRIPTION_MANAGER_ABI,
       functionName: "revoke",
       args:         [subscriptionId],

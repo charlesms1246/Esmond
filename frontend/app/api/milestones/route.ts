@@ -21,20 +21,22 @@ export async function GET() {
       address: addr, abi: CONDITIONAL_ESCROW_ABI, functionName: "milestoneCount",
     }) as bigint;
 
-    // Fetch all relevant events in parallel
+    // Fetch all relevant events in parallel.
+    // .catch(() => []) guards against RPC block-range limits on Paseo testnet
+    // which reject eth_getLogs spanning too many blocks.
     const [createdLogs, releasedLogs, reclaimedLogs] = await Promise.all([
       client.getContractEvents({
         address: addr, abi: CONDITIONAL_ESCROW_ABI,
         eventName: "MilestoneCreated", fromBlock: "earliest", toBlock: "latest",
-      }),
+      }).catch(() => [] as any[]),
       client.getContractEvents({
         address: addr, abi: CONDITIONAL_ESCROW_ABI,
         eventName: "MilestoneReleased", fromBlock: "earliest", toBlock: "latest",
-      }),
+      }).catch(() => [] as any[]),
       client.getContractEvents({
         address: addr, abi: CONDITIONAL_ESCROW_ABI,
         eventName: "MilestoneReclaimed", fromBlock: "earliest", toBlock: "latest",
-      }),
+      }).catch(() => [] as any[]),
     ]);
 
     const releasedIds  = new Set(releasedLogs.map((l: any)  => String(l.args.id)));

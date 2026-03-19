@@ -7,11 +7,14 @@ import { CONDITIONAL_ESCROW_ABI, ERC20_ABI } from "@/lib/contracts/abis";
 import { getContractAddresses }              from "@/lib/contracts/addresses";
 import type { TxStatus }                     from "@/lib/types";
 
-const ESCROW_ADDRESS = getContractAddresses().ConditionalEscrow;
+let _escrowAddress: `0x${string}` | null = null;
+function escrowAddress() {
+  return (_escrowAddress ??= getContractAddresses().ConditionalEscrow);
+}
 
 export function useMilestoneCount() {
   return useReadContract({
-    address:      ESCROW_ADDRESS,
+    address:      escrowAddress(),
     abi:          CONDITIONAL_ESCROW_ABI,
     functionName: "milestoneCount",
     query:        { refetchInterval: 6000 },
@@ -37,14 +40,14 @@ export function useCreateMilestone() {
         address:      params.token,
         abi:          ERC20_ABI,
         functionName: "approve",
-        args:         [ESCROW_ADDRESS, params.amount],
+        args:         [escrowAddress(), params.amount],
         gas:          200_000n,
       });
       setTxStatus({ status: "pending", hash: approveTxHash });
 
       // Step 2: create milestone
       const hash = await writeContractAsync({
-        address:      ESCROW_ADDRESS,
+        address:      escrowAddress(),
         abi:          CONDITIONAL_ESCROW_ABI,
         functionName: "createMilestone",
         args: [
@@ -72,7 +75,7 @@ export function useApproveMilestone() {
   const { writeContractAsync } = useWriteContract();
   return useCallback(async (id: bigint) => {
     return writeContractAsync({
-      address:      ESCROW_ADDRESS,
+      address:      escrowAddress(),
       abi:          CONDITIONAL_ESCROW_ABI,
       functionName: "approveMilestone",
       args:         [id],
@@ -85,7 +88,7 @@ export function useReclaimExpired() {
   const { writeContractAsync } = useWriteContract();
   return useCallback(async (id: bigint) => {
     return writeContractAsync({
-      address:      ESCROW_ADDRESS,
+      address:      escrowAddress(),
       abi:          CONDITIONAL_ESCROW_ABI,
       functionName: "reclaimExpired",
       args:         [id],

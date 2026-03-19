@@ -20,14 +20,15 @@ export async function GET() {
       client.readContract({ address: addr, abi: SUBSCRIPTION_MANAGER_ABI, functionName: "subscriptionCount" }),
     ]) as [bigint, bigint];
 
-    // Fetch plan creation events
+    // Fetch plan creation events.
+    // .catch(() => []) guards against RPC block-range limits on Paseo testnet.
     const planLogs = await client.getContractEvents({
       address:   addr,
       abi:       SUBSCRIPTION_MANAGER_ABI,
       eventName: "PlanCreated",
       fromBlock: "earliest",
       toBlock:   "latest",
-    });
+    }).catch(() => [] as any[]);
 
     // Fetch subscription events
     const subLogs = await client.getContractEvents({
@@ -36,7 +37,7 @@ export async function GET() {
       eventName: "Subscribed",
       fromBlock: "earliest",
       toBlock:   "latest",
-    });
+    }).catch(() => [] as any[]);
 
     return NextResponse.json(
       {

@@ -26,20 +26,24 @@ export const ASSET_IDS = {
 } as const;
 
 // ─── Deployed Contract Addresses ─────────────────────────────────────────
-// These are loaded from environment variables set at build time.
-// Populate .env.local with values from deployments/paseo/addresses.json
-function requireEnv(key: string): `0x${string}` {
-  const val = process.env[key];
-  if (!val) throw new Error(`Missing env var: ${key}. Add it to .env.local from deployments/paseo/addresses.json`);
-  return val as `0x${string}`;
-}
-
+// Static string literal access is required so Next.js webpack can inline
+// NEXT_PUBLIC_* values at build time. Dynamic process.env[key] is NOT inlined.
 export function getContractAddresses() {
+  const vault      = process.env.NEXT_PUBLIC_PAYROLL_VAULT_ADDRESS;
+  const escrow     = process.env.NEXT_PUBLIC_CONDITIONAL_ESCROW_ADDRESS;
+  const sub        = process.env.NEXT_PUBLIC_SUBSCRIPTION_MANAGER_ADDRESS;
+  const scheduler  = process.env.NEXT_PUBLIC_ACTIVE_SCHEDULER_ADDRESS;
+
+  if (!vault)     throw new Error("Missing env var: NEXT_PUBLIC_PAYROLL_VAULT_ADDRESS. Add it to .env.local from deployments/paseo/addresses.json");
+  if (!escrow)    throw new Error("Missing env var: NEXT_PUBLIC_CONDITIONAL_ESCROW_ADDRESS. Add it to .env.local from deployments/paseo/addresses.json");
+  if (!sub)       throw new Error("Missing env var: NEXT_PUBLIC_SUBSCRIPTION_MANAGER_ADDRESS. Add it to .env.local from deployments/paseo/addresses.json");
+  if (!scheduler) throw new Error("Missing env var: NEXT_PUBLIC_ACTIVE_SCHEDULER_ADDRESS. Add it to .env.local from deployments/paseo/addresses.json");
+
   return {
-    PayrollVault:        requireEnv("NEXT_PUBLIC_PAYROLL_VAULT_ADDRESS"),
-    ConditionalEscrow:   requireEnv("NEXT_PUBLIC_CONDITIONAL_ESCROW_ADDRESS"),
-    SubscriptionManager: requireEnv("NEXT_PUBLIC_SUBSCRIPTION_MANAGER_ADDRESS"),
-    ActiveScheduler:     requireEnv("NEXT_PUBLIC_ACTIVE_SCHEDULER_ADDRESS"),
+    PayrollVault:        vault     as `0x${string}`,
+    ConditionalEscrow:   escrow    as `0x${string}`,
+    SubscriptionManager: sub       as `0x${string}`,
+    ActiveScheduler:     scheduler as `0x${string}`,
   } as const;
 }
 

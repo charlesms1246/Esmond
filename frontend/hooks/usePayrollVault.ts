@@ -7,12 +7,15 @@ import { PAYROLL_VAULT_ABI, ERC20_ABI }                  from "@/lib/contracts/a
 import { getContractAddresses }                          from "@/lib/contracts/addresses";
 import type { TxStatus }                                 from "@/lib/types";
 
-const ADDRESSES = getContractAddresses();
+let _addresses: ReturnType<typeof getContractAddresses> | null = null;
+function addresses() {
+  return (_addresses ??= getContractAddresses());
+}
 
 // ─── Read: employee count ─────────────────────────────────────────────────
 export function useEmployeeCount() {
   return useReadContract({
-    address:      ADDRESSES.PayrollVault,
+    address:      addresses().PayrollVault,
     abi:          PAYROLL_VAULT_ABI,
     functionName: "employeeCount",
   });
@@ -21,7 +24,7 @@ export function useEmployeeCount() {
 // ─── Read: single employee by ID ─────────────────────────────────────────
 export function useEmployee(id: bigint | undefined) {
   return useReadContract({
-    address:      ADDRESSES.PayrollVault,
+    address:      addresses().PayrollVault,
     abi:          PAYROLL_VAULT_ABI,
     functionName: "getEmployee",
     args:         id !== undefined ? [id] : undefined,
@@ -32,7 +35,7 @@ export function useEmployee(id: bigint | undefined) {
 // ─── Read: vault balance for a token ─────────────────────────────────────
 export function useVaultTokenBalance(tokenAddress?: `0x${string}`) {
   return useReadContract({
-    address:      ADDRESSES.PayrollVault,
+    address:      addresses().PayrollVault,
     abi:          PAYROLL_VAULT_ABI,
     functionName: "vaultBalance",
     args:         tokenAddress ? [tokenAddress] : undefined,
@@ -47,7 +50,7 @@ export function useVaultAllowance(tokenAddress?: `0x${string}`) {
     address:      tokenAddress,
     abi:          ERC20_ABI,
     functionName: "allowance",
-    args:         address ? [address, ADDRESSES.PayrollVault] : undefined,
+    args:         address ? [address, addresses().PayrollVault] : undefined,
     query:        { enabled: !!tokenAddress && !!address },
   });
 }
@@ -73,14 +76,14 @@ export function useDeposit() {
         address:      tokenAddress,
         abi:          ERC20_ABI,
         functionName: "approve",
-        args:         [ADDRESSES.PayrollVault, amount],
+        args:         [addresses().PayrollVault, amount],
         gas:          200_000n,
       });
       setTxStatus({ status: "pending", hash: approveTxHash });
 
       // Step 2: deposit
       const depositTxHash = await writeContractAsync({
-        address:      ADDRESSES.PayrollVault,
+        address:      addresses().PayrollVault,
         abi:          PAYROLL_VAULT_ABI,
         functionName: "deposit",
         args:         [tokenAddress, amount],
@@ -113,7 +116,7 @@ export function useRegisterEmployee() {
     setTxStatus({ status: "pending" });
     try {
       const hash = await writeContractAsync({
-        address:      ADDRESSES.PayrollVault,
+        address:      addresses().PayrollVault,
         abi:          PAYROLL_VAULT_ABI,
         functionName: "registerEmployee",
         args: [
@@ -146,7 +149,7 @@ export function useRunPayroll() {
     setTxStatus({ status: "pending" });
     try {
       const hash = await writeContractAsync({
-        address:      ADDRESSES.PayrollVault,
+        address:      addresses().PayrollVault,
         abi:          PAYROLL_VAULT_ABI,
         functionName: "runPayroll",
         gas:          2_000_000n,  // generous limit for XCM + cross-VM calls
@@ -167,7 +170,7 @@ export function useDeactivateEmployee() {
   const { writeContractAsync } = useWriteContract();
   return useCallback(async (id: bigint) => {
     return writeContractAsync({
-      address:      ADDRESSES.PayrollVault,
+      address:      addresses().PayrollVault,
       abi:          PAYROLL_VAULT_ABI,
       functionName: "deactivateEmployee",
       args:         [id],
