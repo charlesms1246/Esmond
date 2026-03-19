@@ -7,7 +7,7 @@ interface Props {
   explorerBase?: string;
 }
 
-const EXPLORER = "https://blockscout-passet-hub.parity-testnet.parity.io";
+const EXPLORER = "https://blockscout-testnet.polkadot.io";
 
 export function TxStatusBadge({ status, explorerBase = EXPLORER }: Props) {
   if (status.status === "idle") return null;

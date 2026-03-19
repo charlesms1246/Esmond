@@ -82,7 +82,7 @@ export default function DashboardPage() {
              style={{ borderColor: "var(--border)", background: "var(--bg-card)", color: "var(--text-muted)" }}>
           <div className="w-2 h-2 rounded-full" style={{ background: "var(--success)" }} />
           Paseo Testnet · Chain ID 420420417 ·{" "}
-          <a href="https://blockscout-passet-hub.parity-testnet.parity.io"
+          <a href="https://blockscout-testnet.polkadot.io"
              target="_blank" rel="noopener noreferrer" className="underline hover:text-[var(--text-primary)]">
             Blockscout Explorer
           </a>
