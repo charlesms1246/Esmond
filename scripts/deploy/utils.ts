@@ -1,7 +1,7 @@
 // scripts/deploy/utils.ts
 import * as fs   from "fs";
 import * as path from "path";
-import { ethers } from "hardhat";
+import type { JsonRpcProvider, TransactionReceipt } from "ethers";
 
 // ─── Network constants ────────────────────────────────────────────────────────
 export const PASEO_CHAIN_ID       = 420420422;
@@ -52,11 +52,11 @@ export function logContract(label: string, addr: string) {
 export const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
 export async function waitForTx(
-  provider: ethers.JsonRpcProvider,
+  provider: JsonRpcProvider,
   hash: string,
   label: string,
   timeoutMs = 60_000
-): Promise<ethers.TransactionReceipt> {
+): Promise<TransactionReceipt> {
   log(`Waiting for ${label} (${hash.slice(0, 10)}...)...`);
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
@@ -74,7 +74,7 @@ export async function waitForTx(
 
 // ─── Verify precompile is live ────────────────────────────────────────────────
 export async function verifyPrecompile(
-  provider: ethers.JsonRpcProvider,
+  provider: JsonRpcProvider,
   address: string,
   label: string
 ): Promise<void> {
