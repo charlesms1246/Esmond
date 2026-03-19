@@ -17,7 +17,7 @@ contract PayrollVault is Ownable, ReentrancyGuard {
     // ─────────────────────────────── Constants ────────────────────────────────
 
     /// @dev XCM precompile — verified address, do not modify
-    address public constant XCM_PRECOMPILE = 0x00000000000000000000000000000000000A0000;
+    address public constant XCM_PRECOMPILE = 0x00000000000000000000000000000000000a0000;
 
     /// @dev Weight buffer multiplier numerator (1.2x = 12/10)
     uint64 private constant WEIGHT_BUFFER_NUM = 12;

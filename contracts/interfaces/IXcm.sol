@@ -13,7 +13,7 @@ pragma solidity ^0.8.24;
  */
 
 /// @dev Confirmed precompile address — do not change
-address constant XCM_PRECOMPILE_ADDRESS = 0x00000000000000000000000000000000000A0000;
+address constant XCM_PRECOMPILE_ADDRESS = 0x00000000000000000000000000000000000a0000;
 
 interface IXcm {
     /// @notice Weight struct for XCM execution cost (Weight V2)
