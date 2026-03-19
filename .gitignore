@@ -1,40 +1,77 @@
-# Dependencies
+# ─── Node / npm ─────────────────────────────────────────────────────────────
 node_modules/
-.next/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-# Hardhat
+# ─── Environment / secrets ──────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+# .env.example is safe to commit — contains only key names, no values
+!.env.example
+frontend/.env.local
+frontend/.env.*.local
+!frontend/.env.example
+
+# ─── Hardhat ────────────────────────────────────────────────────────────────
 artifacts/
 cache/
 typechain-types/
 dist/
 
-# Environment
-.env
-.env.local
-.env.*.local
-
-# Rust
+# ─── Rust / Cargo ────────────────────────────────────────────────────────────
 rust-contracts/*/target/
+rust-contracts/*/Cargo.lock
 
-# Deployment logs (keep addresses.json, ignore logs)
+# ─── Next.js ────────────────────────────────────────────────────────────────
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.vercel/
+
+# ─── TypeScript build info ───────────────────────────────────────────────────
+*.tsbuildinfo
+
+# ─── Jest / coverage ────────────────────────────────────────────────────────
+coverage/
+frontend/coverage/
+test/results/gas-report.txt
+# test/results/onchain-test-results.md is kept — it records AGT-04 on-chain results
+
+# ─── Deployment artefacts ────────────────────────────────────────────────────
+# deployments/paseo/addresses.json is kept — canonical contract registry
 deployments/paseo/deploy.log
 
-# Test results (generated)
-test/results/gas-report.txt
+# ─── Logs ────────────────────────────────────────────────────────────────────
+*.log
+logs/
 
-# Editor
+# ─── Editor / IDE ────────────────────────────────────────────────────────────
 .vscode/
 .idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 *.swp
 *.swo
 
-# OS
+# ─── OS ──────────────────────────────────────────────────────────────────────
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
-# Logs
-*.log
-npm-debug.log*
+# ─── Vercel ──────────────────────────────────────────────────────────────────
+.vercel
 
-# TypeScript build
-*.tsbuildinfo
+# ─── Misc ────────────────────────────────────────────────────────────────────
+*.pid
+*.pid.lock
+*.seed
