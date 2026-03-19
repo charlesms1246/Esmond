@@ -6,11 +6,15 @@ pragma solidity ^0.8.24;
  * @notice Scheduler mock that attempts to reenter PayrollVault.runPayroll()
  *         when computePayroll() is called.
  * @dev Used exclusively to test that ReentrancyGuard blocks reentrant calls.
+ *      Deploy first with no vault, then deploy vault, then call setVault().
  */
 contract ReentrantScheduler {
-    address public immutable vault;
+    address public vault;
 
-    constructor(address _vault) {
+    constructor() {}
+
+    /// @dev Call after vault is deployed to complete the circular reference
+    function setVault(address _vault) external {
         vault = _vault;
     }
 
