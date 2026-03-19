@@ -25,8 +25,12 @@ describe("Milestone Escrow Flow", () => {
   it("API route milestones data loads into page within 10 seconds", () => {
     cy.visit("/escrow");
     cy.request("GET", "/api/milestones").then(({ body }) => {
-      if (body.total > 0) {
+      if (body.milestones.length > 0) {
+        // Event data available — milestone cards grid should appear
         cy.get(".grid", { timeout: 10_000 }).should("be.visible");
+      } else {
+        // Event query returned empty (RPC block-range fallback) — empty state shown
+        cy.contains("No milestones", { timeout: 10_000 }).should("be.visible");
       }
     });
   });

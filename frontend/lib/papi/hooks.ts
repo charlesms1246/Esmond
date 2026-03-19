@@ -95,7 +95,7 @@ export function useTransferEvents(contractAddress: string | null | undefined, li
   const [isLoading, setIsLoading] = useState(false);
   const [error,     setError]     = useState<string | null>(null);
 
-  const BLOCKSCOUT_API = "https://blockscout-passet-hub.parity-testnet.parity.io/api/v2";
+  const BLOCKSCOUT_API = "https://blockscout-testnet.polkadot.io/api/v2";
 
   const fetchEvents = useCallback(async () => {
     if (!contractAddress) return;
