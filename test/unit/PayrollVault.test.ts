@@ -49,7 +49,7 @@ async function setupWithOneHubEmployee(
   parachainId = 0,
   employeeAddr?: string
 ) {
-  const { vault, mockUsdc, mockScheduler, owner, alice, USDC_ADDRESS } = fixture;
+  const { vault, mockUsdc, mockScheduler, alice, USDC_ADDRESS } = fixture;
   const empAddr = employeeAddr ?? alice.address;
   const depositAmount = salary * 10n;
   await mockUsdc.approve(await vault.getAddress(), depositAmount);
@@ -68,7 +68,7 @@ describe("PayrollVault", function () {
   // ── Group 1: deposit() ────────────────────────────────────────────────────
   describe("deposit()", function () {
     it("increases vault balance by deposited amount", async function () {
-      const { vault, mockUsdc, owner, USDC_ADDRESS } = await loadFixture(deployPayrollVaultFixture);
+      const { vault, mockUsdc, USDC_ADDRESS } = await loadFixture(deployPayrollVaultFixture);
       const amount = ethers.parseUnits("5000", 6);
       await mockUsdc.approve(await vault.getAddress(), amount);
       await vault.deposit(USDC_ADDRESS, amount);
@@ -301,7 +301,7 @@ describe("PayrollVault", function () {
     });
 
     it("Mixed roster: 2 Hub + 1 Moonbeam — correct execute vs send counts", async function () {
-      const { vault, mockUsdc, mockXcm, mockScheduler, owner, alice, bob, carol, USDC_ADDRESS } =
+      const { vault, mockUsdc, mockXcm, mockScheduler, alice, bob, carol, USDC_ADDRESS } =
         await loadFixture(deployPayrollVaultFixture);
 
       const salary = ethers.parseUnits("100", 6);
