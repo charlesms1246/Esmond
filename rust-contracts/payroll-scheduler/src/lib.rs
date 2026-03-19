@@ -281,4 +281,122 @@ mod tests {
         assert!(!due.contains(&addr(20)));
         assert!(!due.contains(&addr(30)));
     }
+
+    // ── Edge / overflow safety ────────────────────────────────────────────────
+
+    #[test]
+    fn large_timestamp_values_no_overflow() {
+        // nextDue = u64::MAX - 1, currentTimestamp = u64::MAX — should include, no panic
+        let employees = vec![addr(1)];
+        let salaries  = vec![100u128];
+        let next_due  = vec![u64::MAX - 1];
+        let caps      = vec![200u128];
+        let now       = u64::MAX;
+
+        let (due, amounts) = compute_payroll(employees, salaries, next_due, caps, now);
+        assert_eq!(due.len(), 1);
+        assert_eq!(amounts[0], 100);
+    }
+
+    #[test]
+    fn large_amounts_no_overflow() {
+        // salary = u128::MAX / 2, cap = u128::MAX — should include with correct amount
+        let employees = vec![addr(1)];
+        let salary    = u128::MAX / 2;
+        let salaries  = vec![salary];
+        let next_due  = vec![100u64];
+        let caps      = vec![u128::MAX];
+        let now       = 200u64;
+
+        let (due, amounts) = compute_payroll(employees, salaries, next_due, caps, now);
+        assert_eq!(due.len(), 1);
+        assert_eq!(amounts[0], salary);  // amount = salary, not cap
+    }
+
+    #[test]
+    fn single_employee_always_correct() {
+        // Case 1: due + within cap → included
+        let (due, amounts) = compute_payroll(
+            vec![addr(1)], vec![50u128], vec![100u64], vec![100u128], 200u64,
+        );
+        assert_eq!(due.len(), 1);
+        assert_eq!(amounts[0], 50);
+
+        // Case 2: due + cap exceeded → excluded
+        let (due, _) = compute_payroll(
+            vec![addr(1)], vec![200u128], vec![100u64], vec![100u128], 200u64,
+        );
+        assert_eq!(due.len(), 0);
+
+        // Case 3: not due + within cap → excluded
+        let (due, _) = compute_payroll(
+            vec![addr(1)], vec![50u128], vec![500u64], vec![100u128], 200u64,
+        );
+        assert_eq!(due.len(), 0);
+    }
+
+    #[test]
+    fn mixed_due_not_due_returns_subset_five_employees() {
+        // employees 0,2,4 are due; employees 1,3 are not
+        let employees = vec![addr(0), addr(1), addr(2), addr(3), addr(4)];
+        let salaries  = vec![10u128, 20, 30, 40, 50];
+        let next_due  = vec![100u64, 500, 100, 600, 100];
+        let caps      = vec![100u128; 5];
+        let now       = 200u64;
+
+        let (due, amounts) = compute_payroll(employees, salaries, next_due, caps, now);
+        assert_eq!(due.len(), 3);
+        assert_eq!(due[0], addr(0));
+        assert_eq!(due[1], addr(2));
+        assert_eq!(due[2], addr(4));
+        assert_eq!(amounts, vec![10u128, 30, 50]);
+    }
+
+    #[test]
+    fn mixed_due_and_cap_scenarios_all_handled() {
+        // employee 0: due, within cap → included
+        // employee 1: due, cap exceeded → excluded
+        // employee 2: not due, within cap → excluded
+        // employee 3: not due, cap exceeded → excluded
+        // employee 4: due, salary == cap → included
+        let employees = vec![addr(0), addr(1), addr(2), addr(3), addr(4)];
+        let salaries  = vec![50u128, 200, 50, 200, 100];
+        let next_due  = vec![100u64, 100, 500, 500, 100];
+        let caps      = vec![100u128, 100, 100, 100, 100];
+        let now       = 200u64;
+
+        let (due, amounts) = compute_payroll(employees, salaries, next_due, caps, now);
+        assert_eq!(due.len(), 2);
+        assert_eq!(due[0], addr(0));
+        assert_eq!(due[1], addr(4));
+        assert_eq!(amounts[0], 50);
+        assert_eq!(amounts[1], 100); // salary == cap, included
+    }
+
+    #[test]
+    fn output_arrays_equal_length_for_zero_one_all_due() {
+        let employees = vec![addr(1), addr(2), addr(3)];
+        let salaries  = vec![10u128, 20, 30];
+        let caps      = vec![100u128, 100, 100];
+
+        // Zero due
+        let (due, amts) = compute_payroll(
+            employees.clone(), salaries.clone(), vec![500u64, 500, 500], caps.clone(), 100u64,
+        );
+        assert_eq!(due.len(), amts.len());
+
+        // One due
+        let (due, amts) = compute_payroll(
+            employees.clone(), salaries.clone(), vec![50u64, 500, 500], caps.clone(), 100u64,
+        );
+        assert_eq!(due.len(), amts.len());
+        assert_eq!(due.len(), 1);
+
+        // All due
+        let (due, amts) = compute_payroll(
+            employees.clone(), salaries.clone(), vec![50u64, 50, 50], caps.clone(), 100u64,
+        );
+        assert_eq!(due.len(), amts.len());
+        assert_eq!(due.len(), 3);
+    }
 }

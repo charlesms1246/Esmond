@@ -41,7 +41,7 @@ interface IPayrollScheduler {
         uint256[] calldata nextPaymentDue,
         uint256[] calldata approvedCaps,
         uint256 currentTimestamp
-    ) external view returns (
+    ) external returns (
         address[] memory dueEmployees,
         uint256[] memory amounts
     );
