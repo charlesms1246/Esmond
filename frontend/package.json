@@ -17,8 +17,7 @@
     "wagmi":                 "^2.14.0",
     "viem":                  "^2.21.0",
     "@tanstack/react-query": "^5.60.0",
-    "polkadot-api":          "^1.22.0",
-    "@polkadot-api/descriptors": "^0.10.0"
+    "polkadot-api":          "^1.22.0"
   },
   "devDependencies": {
     "@types/node":               "^22.0.0",
