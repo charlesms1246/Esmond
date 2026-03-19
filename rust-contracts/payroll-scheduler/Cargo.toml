@@ -1,0 +1,26 @@
+[package]
+name = "payroll-scheduler"
+version = "0.1.0"
+edition = "2021"
+
+# pallet_revive compiles to RISC-V PVM via the revive CLI tool
+# Do NOT use cargo-contract (that is for ink! which is discontinued)
+# Build command: revive build --release
+# Output: target/release/payroll_scheduler.polkavm
+
+[lib]
+name = "payroll_scheduler"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# No external dependencies — pure computation contract
+# pallet_revive ABI compatibility is handled by the revive compiler
+
+[dev-dependencies]
+# For pure Rust unit tests only (no pallet_revive dependency needed for tests)
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
