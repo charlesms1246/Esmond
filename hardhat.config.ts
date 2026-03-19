@@ -1,0 +1,46 @@
+import { HardhatUserConfig } from "hardhat/config";
+import "@nomicfoundation/hardhat-toolbox";
+import "@nomicfoundation/hardhat-verify";
+import * as dotenv from "dotenv";
+dotenv.config();
+
+const config: HardhatUserConfig = {
+  solidity: {
+    version: "0.8.24",
+    settings: {
+      optimizer: { enabled: true, runs: 200 },
+      evmVersion: "london",
+    },
+  },
+  networks: {
+    hardhat: {
+      chainId: 420420422,
+    },
+    paseo: {
+      chainId: 420420422,
+      url: process.env.PASEO_RPC_URL || "https://testnet-passet-hub-eth-rpc.polkadot.io",
+      accounts: process.env.DEPLOYER_PRIVATE_KEY
+        ? [process.env.DEPLOYER_PRIVATE_KEY]
+        : [],
+      gasMultiplier: 1.2,
+    },
+  },
+  etherscan: {
+    apiKey: { paseo: "no-api-key-needed" },
+    customChains: [{
+      network: "paseo",
+      chainId: 420420422,
+      urls: {
+        apiURL:     "https://blockscout-passet-hub.parity-testnet.parity.io/api",
+        browserURL: "https://blockscout-passet-hub.parity-testnet.parity.io",
+      },
+    }],
+  },
+  gasReporter: {
+    enabled: process.env.REPORT_GAS === "true",
+    outputFile: "test/results/gas-report.txt",
+    noColors: true,
+  },
+};
+
+export default config;
