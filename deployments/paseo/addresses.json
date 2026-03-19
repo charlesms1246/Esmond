@@ -1,0 +1,23 @@
+{
+  "network": "paseo",
+  "chainId": 420420422,
+  "precompiles": {
+    "xcm":            "0x00000000000000000000000000000000000A0000",
+    "erc20_mockUsdc": "0xFFFFFFFF000000000000000000000000000007C0",
+    "erc20_mockUsdt": "0xFFFFFFFF00000000000000000000000000000539"
+  },
+  "assetIds": {
+    "mockUsdc": 1984,
+    "mockUsdt": 1337
+  },
+  "contracts": {
+    "PayrollScheduler":         "NOT_DEPLOYED",
+    "PayrollSchedulerFallback": "NOT_DEPLOYED",
+    "PayrollVault":             "NOT_DEPLOYED",
+    "ConditionalEscrow":        "NOT_DEPLOYED",
+    "SubscriptionManager":      "NOT_DEPLOYED"
+  },
+  "activeScheduler": "NOT_SET",
+  "activeSchedulerAddress": "NOT_SET",
+  "_note": "Run scripts/deploy/01-04 in order to populate this file"
+}

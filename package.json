@@ -16,7 +16,10 @@
     "dotenv": "^16.0.0",
     "hardhat": "^2.22.0",
     "hardhat-gas-reporter": "^1.0.9",
-    "typescript": "^5.0.0",
-    "ts-node": "^10.0.0"
+    "ts-node": "^10.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "polkadot-api": "^1.23.3"
   }
 }
