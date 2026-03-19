@@ -44,12 +44,6 @@ export default function EscrowPage() {
     }).catch(() => {});
   }
 
-  if (!isConnected) return (
-    <div className="py-24 text-center text-[var(--text-secondary)]">
-      Connect your wallet to manage milestones.
-    </div>
-  );
-
   const inputClass = "w-full rounded-lg border px-3 py-2.5 text-sm";
   const inputStyle = { background: "var(--bg-input)", borderColor: "var(--border)", color: "var(--text-primary)" };
 
@@ -62,14 +56,17 @@ export default function EscrowPage() {
             Trustless deliverable-based conditional payments
           </p>
         </div>
-        <button onClick={() => setShowForm(v => !v)}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-white"
-                style={{ background: "var(--dot-pink)" }}>
-          + New Milestone
-        </button>
+        {isConnected && (
+          <button onClick={() => setShowForm(v => !v)}
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-white"
+                  style={{ background: "var(--dot-pink)" }}>
+            + New Milestone
+          </button>
+        )}
       </div>
 
-      {showForm && (
+      {/* Create form — wallet required */}
+      {isConnected && showForm && (
         <form onSubmit={handleCreate}
               className="rounded-2xl border p-6 flex flex-col gap-4"
               style={{ background: "var(--bg-card)", borderColor: "var(--dot-pink)" }}>
@@ -109,6 +106,14 @@ export default function EscrowPage() {
         </form>
       )}
 
+      {!isConnected && (
+        <div className="rounded-2xl border p-4 text-center text-sm text-[var(--text-muted)]"
+             style={{ borderColor: "var(--border-subtle)" }}>
+          Connect your wallet to create milestones.
+        </div>
+      )}
+
+      {/* Milestone list — visible to all */}
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3].map(i => (
@@ -124,7 +129,13 @@ export default function EscrowPage() {
           {milestones.map(m => (
             <MilestoneCard key={m.id} {...m}
               id={BigInt(m.id)}
-              isApprover={!!address && m.approvers.includes(address)}
+              isApprover={
+                !!address && (
+                  m.approvers.map(a => a.toLowerCase()).includes(address.toLowerCase()) ||
+                  // Fallback: payer is approver when approvers list is empty (event-based API limitation)
+                  (m.approvers.length === 0 && m.payer.toLowerCase() === address.toLowerCase())
+                )
+              }
             />
           ))}
         </div>

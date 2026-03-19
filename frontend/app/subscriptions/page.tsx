@@ -17,8 +17,13 @@ export default function SubscriptionsPage() {
   const { createPlan, txStatus: planStatus } = useCreatePlan();
   const { subscribe,  txStatus: subStatus }  = useSubscribe();
 
+  // Plan creation form state
   const [planCharge,   setPlanCharge]   = useState("");
   const [planInterval, setPlanInterval] = useState("30");
+
+  // Subscribe inline form state
+  const [subscribingPlanId, setSubscribingPlanId] = useState<string | null>(null);
+  const [capInput,          setCapInput]           = useState("");
 
   useEffect(() => {
     setLoading(true);
@@ -41,11 +46,16 @@ export default function SubscriptionsPage() {
     }).catch(() => {});
   }
 
-  if (!isConnected) return (
-    <div className="py-24 text-center text-[var(--text-secondary)]">
-      Connect your wallet to manage subscriptions.
-    </div>
-  );
+  async function handleSubscribe(planId: string) {
+    if (!capInput) return;
+    await subscribe({
+      planId:      BigInt(planId),
+      approvedCap: parseUnits(capInput, 6),
+      token:       MOCK_ERC20_ADDRESS,
+    }).catch(() => {});
+    setSubscribingPlanId(null);
+    setCapInput("");
+  }
 
   const inputClass = "w-full rounded-lg border px-3 py-2.5 text-sm";
   const inputStyle = { background: "var(--bg-input)", borderColor: "var(--border)", color: "var(--text-primary)" };
@@ -73,8 +83,8 @@ export default function SubscriptionsPage() {
         ))}
       </div>
 
-      {/* Create Plan form */}
-      {tab === "plans" && (
+      {/* Create Plan form — wallet required */}
+      {tab === "plans" && isConnected && (
         <form onSubmit={handleCreatePlan}
               className="rounded-2xl border p-6 flex flex-col gap-4"
               style={{ background: "var(--bg-card)", borderColor: "var(--border)" }}>
@@ -102,7 +112,14 @@ export default function SubscriptionsPage() {
         </form>
       )}
 
-      {/* Content */}
+      {tab === "plans" && !isConnected && (
+        <div className="rounded-2xl border p-4 text-center text-sm text-[var(--text-muted)]"
+             style={{ borderColor: "var(--border-subtle)" }}>
+          Connect your wallet to create plans or subscribe.
+        </div>
+      )}
+
+      {/* Content — visible to all */}
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3].map(i => (
@@ -120,10 +137,10 @@ export default function SubscriptionsPage() {
               const plan = data.plans.find((p: any) => p.id === s.planId) ?? {};
               return (
                 <SubscriptionCard key={s.id}
-                  subscriptionId={s.id}       planId={s.planId}
-                  chargeAmount={plan.chargeAmount ?? "0"} interval={plan.interval ?? "0"}
-                  nextChargeDue={s.nextChargeDue ?? "0"} totalCharged={s.totalCharged ?? "0"}
-                  approvedCap={s.approvedCap}  active={s.active !== false}
+                  subscriptionId={s.id}                       planId={s.planId}
+                  chargeAmount={plan.chargeAmount ?? "0"}     interval={plan.interval ?? "0"}
+                  nextChargeDue={s.nextChargeDue ?? "0"}      totalCharged={s.totalCharged ?? "0"}
+                  approvedCap={s.approvedCap ?? "0"}          active={s.active !== false}
                   isProvider={!!address && plan.provider?.toLowerCase() === address.toLowerCase()}
                   isSubscriber={!!address && s.subscriber?.toLowerCase() === address.toLowerCase()}
                 />
@@ -132,6 +149,7 @@ export default function SubscriptionsPage() {
           </div>
         )
       ) : (
+        /* Plans tab */
         data.plans.length === 0 ? (
           <div className="py-16 text-center rounded-xl border" style={{ borderColor: "var(--border)" }}>
             <p className="text-[var(--text-secondary)]">No plans yet. Create one above.</p>
@@ -139,19 +157,52 @@ export default function SubscriptionsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {data.plans.map((p: any) => (
-              <div key={p.id} className="rounded-2xl border p-5"
+              <div key={p.id} className="rounded-2xl border p-5 flex flex-col gap-3"
                    style={{ background: "var(--bg-card)", borderColor: "var(--border)" }}>
-                <p className="text-xs text-[var(--text-muted)] mb-1">Plan #{p.id}</p>
-                <p className="text-xl font-bold">
-                  {p.chargeAmount ? (Number(p.chargeAmount) / 1e6).toFixed(2) : "—"}{" "}
-                  <span className="text-sm font-medium" style={{ color: "var(--dot-pink)" }}>tUSDC</span>
-                </p>
-                <p className="text-xs text-[var(--text-secondary)] mt-1">
-                  every {p.interval ? Math.round(Number(p.interval) / 3600 / 24) : "?"} days
-                </p>
-                <p className="text-xs text-[var(--text-muted)] mt-2 font-mono">
-                  {p.provider?.slice(0, 8)}…
-                </p>
+                <div>
+                  <p className="text-xs text-[var(--text-muted)] mb-1">Plan #{p.id}</p>
+                  <p className="text-xl font-bold">
+                    {p.chargeAmount ? (Number(p.chargeAmount) / 1e6).toFixed(2) : "—"}{" "}
+                    <span className="text-sm font-medium" style={{ color: "var(--dot-pink)" }}>tUSDC</span>
+                  </p>
+                  <p className="text-xs text-[var(--text-secondary)] mt-1">
+                    every {p.interval ? Math.round(Number(p.interval) / 3600 / 24) : "?"} days
+                  </p>
+                  <p className="text-xs text-[var(--text-muted)] mt-1 font-mono">
+                    {p.provider?.slice(0, 8)}…
+                  </p>
+                </div>
+
+                {/* Subscribe inline form */}
+                {isConnected && subscribingPlanId === p.id ? (
+                  <div className="flex flex-col gap-2 pt-1 border-t" style={{ borderColor: "var(--border-subtle)" }}>
+                    <label className="text-xs text-[var(--text-secondary)]">Approved Cap (tUSDC)</label>
+                    <input type="number" min="0" step="0.01" placeholder="e.g. 100"
+                           value={capInput} onChange={e => setCapInput(e.target.value)}
+                           className="w-full rounded-lg border px-3 py-2 text-sm"
+                           style={{ background: "var(--bg-input)", borderColor: "var(--border)", color: "var(--text-primary)" }} />
+                    <TxStatusBadge status={subStatus} />
+                    <div className="flex gap-2">
+                      <button onClick={() => { setSubscribingPlanId(null); setCapInput(""); }}
+                              className="flex-1 py-1.5 rounded-lg text-xs border"
+                              style={{ borderColor: "var(--border)", color: "var(--text-secondary)" }}>
+                        Cancel
+                      </button>
+                      <button onClick={() => handleSubscribe(p.id)}
+                              disabled={subStatus.status === "pending" || !capInput}
+                              className="flex-1 py-1.5 rounded-lg text-xs font-medium text-white disabled:opacity-50"
+                              style={{ background: "var(--dot-pink)" }}>
+                        {subStatus.status === "pending" ? "Subscribing…" : "Confirm"}
+                      </button>
+                    </div>
+                  </div>
+                ) : isConnected ? (
+                  <button onClick={() => { setSubscribingPlanId(p.id); setCapInput(""); }}
+                          className="w-full py-2 rounded-lg text-sm font-medium text-white mt-auto"
+                          style={{ background: "var(--dot-pink)" }}>
+                    Subscribe
+                  </button>
+                ) : null}
               </div>
             ))}
           </div>
