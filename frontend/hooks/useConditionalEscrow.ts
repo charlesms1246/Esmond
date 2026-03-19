@@ -1,7 +1,7 @@
 // frontend/hooks/useConditionalEscrow.ts
 "use client";
 
-import { useReadContract, useWriteContract } from "wagmi";
+import { useReadContract, useWriteContract, usePublicClient } from "wagmi";
 import { useState, useCallback }             from "react";
 import { CONDITIONAL_ESCROW_ABI, ERC20_ABI } from "@/lib/contracts/abis";
 import { getContractAddresses }              from "@/lib/contracts/addresses";
@@ -23,6 +23,7 @@ export function useMilestoneCount() {
 
 export function useCreateMilestone() {
   const { writeContractAsync }  = useWriteContract();
+  const publicClient            = usePublicClient();
   const [txStatus, setTxStatus] = useState<TxStatus>({ status: "idle" });
 
   const createMilestone = useCallback(async (params: {
@@ -33,6 +34,7 @@ export function useCreateMilestone() {
     approvalsRequired: bigint;
     disputeDeadline:   bigint;
   }) => {
+    if (!publicClient) throw new Error("No public client");
     setTxStatus({ status: "pending" });
     try {
       // Step 1: approve escrow contract on ERC-20 precompile
@@ -45,7 +47,10 @@ export function useCreateMilestone() {
       });
       setTxStatus({ status: "pending", hash: approveTxHash });
 
-      // Step 2: create milestone
+      // Step 2: wait for approval to be mined before createMilestone checks allowance
+      await publicClient.waitForTransactionReceipt({ hash: approveTxHash });
+
+      // Step 3: create milestone
       const hash = await writeContractAsync({
         address:      escrowAddress(),
         abi:          CONDITIONAL_ESCROW_ABI,
@@ -66,7 +71,7 @@ export function useCreateMilestone() {
       setTxStatus({ status: "error", error: err.shortMessage ?? err.message });
       throw err;
     }
-  }, [writeContractAsync]);
+  }, [writeContractAsync, publicClient]);
 
   return { createMilestone, txStatus };
 }

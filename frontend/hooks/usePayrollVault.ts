@@ -1,7 +1,7 @@
 // frontend/hooks/usePayrollVault.ts
 "use client";
 
-import { useReadContract, useWriteContract, useAccount } from "wagmi";
+import { useReadContract, useWriteContract, useAccount, usePublicClient } from "wagmi";
 import { useState, useCallback }                         from "react";
 import { PAYROLL_VAULT_ABI, ERC20_ABI }                  from "@/lib/contracts/abis";
 import { getContractAddresses }                          from "@/lib/contracts/addresses";
@@ -18,6 +18,7 @@ export function useEmployeeCount() {
     address:      addresses().PayrollVault,
     abi:          PAYROLL_VAULT_ABI,
     functionName: "employeeCount",
+    query:        { refetchInterval: 6000 },
   });
 }
 
@@ -57,18 +58,21 @@ export function useVaultAllowance(tokenAddress?: `0x${string}`) {
 
 // ─── Write: deposit ───────────────────────────────────────────────────────
 /**
- * Composed hook: approve ERC-20 allowance, then deposit.
+ * Composed hook: approve ERC-20 allowance, wait for confirmation, then deposit.
  * Step 1: approve(vault, amount) on the ERC-20 precompile
- * Step 2: deposit(token, amount) on PayrollVault
+ * Step 2: wait for approve tx to be mined (required — deposit calls transferFrom)
+ * Step 3: deposit(token, amount) on PayrollVault
  */
 export function useDeposit() {
   const { writeContractAsync }  = useWriteContract();
+  const publicClient            = usePublicClient();
   const [txStatus, setTxStatus] = useState<TxStatus>({ status: "idle" });
 
   const deposit = useCallback(async (
     tokenAddress: `0x${string}`,
     amount:       bigint,
   ) => {
+    if (!publicClient) throw new Error("No public client");
     setTxStatus({ status: "pending" });
     try {
       // Step 1: approve
@@ -81,7 +85,10 @@ export function useDeposit() {
       });
       setTxStatus({ status: "pending", hash: approveTxHash });
 
-      // Step 2: deposit
+      // Step 2: wait for approval to be mined before transferFrom can succeed
+      await publicClient.waitForTransactionReceipt({ hash: approveTxHash });
+
+      // Step 3: deposit
       const depositTxHash = await writeContractAsync({
         address:      addresses().PayrollVault,
         abi:          PAYROLL_VAULT_ABI,
@@ -95,7 +102,7 @@ export function useDeposit() {
       setTxStatus({ status: "error", error: err.shortMessage ?? err.message });
       throw err;
     }
-  }, [writeContractAsync]);
+  }, [writeContractAsync, publicClient]);
 
   return { deposit, txStatus };
 }

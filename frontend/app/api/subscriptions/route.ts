@@ -1,7 +1,8 @@
 // frontend/app/api/subscriptions/route.ts
 /**
  * GET /api/subscriptions
- * Returns subscription plans and active subscriptions from SubscriptionManager on-chain state.
+ * Returns subscription plans and active subscriptions from SubscriptionManager.
+ * Uses plans(id) and subscriptions(id) public mapping getters — avoids eth_getLogs limits.
  */
 
 import { NextResponse }               from "next/server";
@@ -20,43 +21,57 @@ export async function GET() {
       client.readContract({ address: addr, abi: SUBSCRIPTION_MANAGER_ABI, functionName: "subscriptionCount" }),
     ]) as [bigint, bigint];
 
-    // Fetch plan creation events.
-    // .catch(() => []) guards against RPC block-range limits on Paseo testnet.
-    const planLogs = await client.getContractEvents({
-      address:   addr,
-      abi:       SUBSCRIPTION_MANAGER_ABI,
-      eventName: "PlanCreated",
-      fromBlock: "earliest",
-      toBlock:   "latest",
-    }).catch(() => [] as any[]);
+    const planLimit = Number(planCount) > 50 ? 50 : Number(planCount);
+    const subLimit  = Number(subCount)  > 50 ? 50 : Number(subCount);
 
-    // Fetch subscription events
-    const subLogs = await client.getContractEvents({
-      address:   addr,
-      abi:       SUBSCRIPTION_MANAGER_ABI,
-      eventName: "Subscribed",
-      fromBlock: "earliest",
-      toBlock:   "latest",
-    }).catch(() => [] as any[]);
+    // Fetch all plans and subscriptions in parallel by index
+    const [planResults, subResults] = await Promise.all([
+      Promise.all(
+        Array.from({ length: planLimit }, (_, i) =>
+          client.readContract({
+            address:      addr,
+            abi:          SUBSCRIPTION_MANAGER_ABI,
+            functionName: "plans",
+            args:         [BigInt(i)],
+          })
+        )
+      ),
+      Promise.all(
+        Array.from({ length: subLimit }, (_, i) =>
+          client.readContract({
+            address:      addr,
+            abi:          SUBSCRIPTION_MANAGER_ABI,
+            functionName: "subscriptions",
+            args:         [BigInt(i)],
+          })
+        )
+      ),
+    ]) as [any[], any[]];
+
+    const plans = planResults.map((p: any, i: number) => ({
+      id:           String(i),
+      provider:     p.provider,
+      token:        p.token,
+      chargeAmount: String(p.chargeAmount),
+      interval:     String(p.interval),
+      maxCharges:   String(p.maxCharges),
+      chargeCount:  String(p.chargeCount),
+      expiry:       String(p.expiry),
+      active:       p.active,
+    }));
+
+    const subscriptions = subResults.map((s: any, i: number) => ({
+      id:            String(i),
+      subscriber:    s.subscriber,
+      planId:        String(s.planId),
+      approvedCap:   String(s.approvedCap),
+      totalCharged:  String(s.totalCharged),
+      nextChargeDue: String(s.nextChargeDue),
+      active:        s.active,
+    }));
 
     return NextResponse.json(
-      {
-        plans: planLogs.map((l: any) => ({
-          id:           String(l.args.planId),
-          provider:     l.args.provider,
-          token:        l.args.token,
-          chargeAmount: String(l.args.chargeAmount),
-          interval:     String(l.args.interval),
-        })),
-        subscriptions: subLogs.map((l: any) => ({
-          id:          String(l.args.subscriptionId),
-          subscriber:  l.args.subscriber,
-          planId:      String(l.args.planId),
-          approvedCap: String(l.args.approvedCap),
-        })),
-        totalPlans: Number(planCount),
-        totalSubs:  Number(subCount),
-      },
+      { plans, subscriptions, totalPlans: Number(planCount), totalSubs: Number(subCount) },
       { headers: { "Cache-Control": "no-store, max-age=0" } },
     );
   } catch (err: any) {

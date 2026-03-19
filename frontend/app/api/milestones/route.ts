@@ -1,8 +1,8 @@
 // frontend/app/api/milestones/route.ts
 /**
  * GET /api/milestones
- * Returns all milestones from ConditionalEscrow on-chain state.
- * Uses event logs since ConditionalEscrow doesn't expose getMilestone() view.
+ * Returns all milestones from ConditionalEscrow using getMilestone(id) view calls.
+ * Reads each milestone by index (0..count-1) — avoids eth_getLogs block-range limits.
  */
 
 import { NextResponse }             from "next/server";
@@ -21,43 +21,37 @@ export async function GET() {
       address: addr, abi: CONDITIONAL_ESCROW_ABI, functionName: "milestoneCount",
     }) as bigint;
 
-    // Fetch all relevant events in parallel.
-    // .catch(() => []) guards against RPC block-range limits on Paseo testnet
-    // which reject eth_getLogs spanning too many blocks.
-    const [createdLogs, releasedLogs, reclaimedLogs] = await Promise.all([
-      client.getContractEvents({
-        address: addr, abi: CONDITIONAL_ESCROW_ABI,
-        eventName: "MilestoneCreated", fromBlock: "earliest", toBlock: "latest",
-      }).catch(() => [] as any[]),
-      client.getContractEvents({
-        address: addr, abi: CONDITIONAL_ESCROW_ABI,
-        eventName: "MilestoneReleased", fromBlock: "earliest", toBlock: "latest",
-      }).catch(() => [] as any[]),
-      client.getContractEvents({
-        address: addr, abi: CONDITIONAL_ESCROW_ABI,
-        eventName: "MilestoneReclaimed", fromBlock: "earliest", toBlock: "latest",
-      }).catch(() => [] as any[]),
-    ]);
+    const limit = Number(count) > 50 ? 50 : Number(count);
 
-    const releasedIds  = new Set(releasedLogs.map((l: any)  => String(l.args.id)));
-    const reclaimedIds = new Set(reclaimedLogs.map((l: any) => String(l.args.id)));
+    // Fetch each milestone by index in parallel
+    const milestonePromises = Array.from({ length: limit }, (_, i) =>
+      client.readContract({
+        address:      addr,
+        abi:          CONDITIONAL_ESCROW_ABI,
+        functionName: "getMilestone",
+        args:         [BigInt(i)],
+      })
+    );
+    const milestones = await Promise.all(milestonePromises) as any[];
 
-    const dtos: MilestoneDTO[] = createdLogs.map((log: any) => {
-      const id  = String(log.args.id);
+    const now = BigInt(Math.floor(Date.now() / 1000));
+
+    const dtos: MilestoneDTO[] = milestones.map((m: any, i: number) => {
       let status: MilestoneDTO["status"] = "active";
-      if (releasedIds.has(id))       status = "released";
-      else if (reclaimedIds.has(id)) status = "reclaimed";
+      if (m.released)  status = "released";
+      else if (m.reclaimed) status = "reclaimed";
+      else if (m.disputeDeadline > 0n && m.disputeDeadline < now) status = "expired";
 
       return {
-        id,
-        payer:             log.args.payer,
-        payee:             log.args.payee,
-        token:             log.args.token ?? "",
-        amount:            String(log.args.amount),
-        approvers:         [],  // not in event — payer fallback used in UI
-        approvalsRequired: "1",
-        approvalCount:     releasedIds.has(id) ? "1" : "0",
-        disputeDeadline:   "0",
+        id:                String(i),
+        payer:             m.payer,
+        payee:             m.payee,
+        token:             m.token,
+        amount:            String(m.amount),
+        approvers:         [...m.approvers],
+        approvalsRequired: String(m.approvalsRequired),
+        approvalCount:     String(m.approvalCount),
+        disputeDeadline:   String(m.disputeDeadline),
         status,
       };
     });

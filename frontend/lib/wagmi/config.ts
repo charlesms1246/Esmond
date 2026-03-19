@@ -28,7 +28,7 @@ export const paseo = defineChain({
   blockExplorers: {
     default: {
       name: "Blockscout",
-      url:  "https://blockscout-passet-hub.parity-testnet.parity.io",
+      url:  "https://blockscout-testnet.polkadot.io",
     },
   },
   testnet: true,

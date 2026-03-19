@@ -1,8 +1,8 @@
 // frontend/hooks/useSubscriptionManager.ts
 "use client";
 
-import { useReadContract, useWriteContract }          from "wagmi";
-import { useState, useCallback }                      from "react";
+import { useReadContract, useWriteContract, usePublicClient } from "wagmi";
+import { useState, useCallback }                             from "react";
 import { SUBSCRIPTION_MANAGER_ABI, ERC20_ABI }        from "@/lib/contracts/abis";
 import { getContractAddresses }                       from "@/lib/contracts/addresses";
 import type { TxStatus }                              from "@/lib/types";
@@ -54,6 +54,7 @@ export function useCreatePlan() {
 
 export function useSubscribe() {
   const { writeContractAsync }  = useWriteContract();
+  const publicClient            = usePublicClient();
   const [txStatus, setTxStatus] = useState<TxStatus>({ status: "idle" });
 
   const subscribe = useCallback(async (params: {
@@ -61,10 +62,11 @@ export function useSubscribe() {
     approvedCap: bigint;
     token:       `0x${string}`;  // needed for ERC-20 approve step
   }) => {
+    if (!publicClient) throw new Error("No public client");
     setTxStatus({ status: "pending" });
     try {
       // Step 1: approve SubscriptionManager on ERC-20 precompile
-      await writeContractAsync({
+      const approveTxHash = await writeContractAsync({
         address:      params.token,
         abi:          ERC20_ABI,
         functionName: "approve",
@@ -72,7 +74,10 @@ export function useSubscribe() {
         gas:          200_000n,
       });
 
-      // Step 2: subscribe
+      // Step 2: wait for approval to be mined before subscribe checks allowance
+      await publicClient.waitForTransactionReceipt({ hash: approveTxHash });
+
+      // Step 3: subscribe
       const hash = await writeContractAsync({
         address:      subAddress(),
         abi:          SUBSCRIPTION_MANAGER_ABI,
@@ -86,7 +91,7 @@ export function useSubscribe() {
       setTxStatus({ status: "error", error: err.shortMessage ?? err.message });
       throw err;
     }
-  }, [writeContractAsync]);
+  }, [writeContractAsync, publicClient]);
 
   return { subscribe, txStatus };
 }

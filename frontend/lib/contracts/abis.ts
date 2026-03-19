@@ -131,6 +131,27 @@ export const CONDITIONAL_ESCROW_ABI = [
     inputs: [{ name: "id", type: "uint256" }],
     outputs: [], stateMutability: "nonpayable",
   },
+  // ── View functions ───────────────────────────────────────────────────────
+  {
+    type: "function", name: "getMilestone",
+    inputs: [{ name: "id", type: "uint256" }],
+    outputs: [{
+      type: "tuple",
+      components: [
+        { name: "payer",             type: "address"   },
+        { name: "payee",             type: "address"   },
+        { name: "token",             type: "address"   },
+        { name: "amount",            type: "uint256"   },
+        { name: "approvers",         type: "address[]" },
+        { name: "approvalsRequired", type: "uint256"   },
+        { name: "approvalCount",     type: "uint256"   },
+        { name: "disputeDeadline",   type: "uint256"   },
+        { name: "released",          type: "bool"      },
+        { name: "reclaimed",         type: "bool"      },
+      ],
+    }],
+    stateMutability: "view",
+  },
   {
     type: "event", name: "MilestoneCreated",
     inputs: [
@@ -197,6 +218,41 @@ export const SUBSCRIPTION_MANAGER_ABI = [
     type: "function", name: "revoke",
     inputs: [{ name: "subscriptionId", type: "uint256" }],
     outputs: [], stateMutability: "nonpayable",
+  },
+  // ── View functions (public mapping getters) ───────────────────────────────
+  {
+    type: "function", name: "plans",
+    inputs: [{ name: "planId", type: "uint256" }],
+    outputs: [{
+      type: "tuple",
+      components: [
+        { name: "provider",     type: "address" },
+        { name: "token",        type: "address" },
+        { name: "chargeAmount", type: "uint256" },
+        { name: "interval",     type: "uint256" },
+        { name: "maxCharges",   type: "uint256" },
+        { name: "chargeCount",  type: "uint256" },
+        { name: "expiry",       type: "uint256" },
+        { name: "active",       type: "bool"    },
+      ],
+    }],
+    stateMutability: "view",
+  },
+  {
+    type: "function", name: "subscriptions",
+    inputs: [{ name: "subscriptionId", type: "uint256" }],
+    outputs: [{
+      type: "tuple",
+      components: [
+        { name: "subscriber",    type: "address" },
+        { name: "planId",        type: "uint256" },
+        { name: "approvedCap",   type: "uint256" },
+        { name: "totalCharged",  type: "uint256" },
+        { name: "nextChargeDue", type: "uint256" },
+        { name: "active",        type: "bool"    },
+      ],
+    }],
+    stateMutability: "view",
   },
   {
     type: "event", name: "PlanCreated",
