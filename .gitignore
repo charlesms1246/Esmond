@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+
+# Hardhat
+artifacts/
+cache/
+typechain-types/
+dist/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Rust
+rust-contracts/*/target/
+
+# Deployment logs (keep addresses.json, ignore logs)
+deployments/paseo/deploy.log
+
+# Test results (generated)
+test/results/gas-report.txt
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# TypeScript build
+*.tsbuildinfo
