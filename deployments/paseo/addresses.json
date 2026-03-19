@@ -23,7 +23,8 @@
   "deployedAt": "2026-03-19T09:10:14.888Z",
   "deployerAddress": "0xc618931C93cae544608347a7b733607A25BB20Ff",
   "step1_completed": "2026-03-19T09:10:14.889Z",
-  "updatedAt": "2026-03-19T09:13:52.371Z",
+  "updatedAt": "2026-03-19T12:56:03.201Z",
   "step2_completed": "2026-03-19T09:11:57.181Z",
-  "step3_completed": "2026-03-19T09:13:52.371Z"
+  "step3_completed": "2026-03-19T09:13:52.371Z",
+  "mockErc20": "0xA01337C3a4008BaABfef5472bEfAf1C4Dbf8C243"
 }

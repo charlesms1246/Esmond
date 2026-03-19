@@ -60,7 +60,14 @@ const walletClient = createWalletClient({ account, chain: PASEO_CHAIN as any, tr
 const VAULT_ADDR  = ADDRESSES.contracts.PayrollVault.toLowerCase()        as `0x${string}`;
 const ESCROW_ADDR = ADDRESSES.contracts.ConditionalEscrow.toLowerCase()   as `0x${string}`;
 const SUB_ADDR    = ADDRESSES.contracts.SubscriptionManager.toLowerCase() as `0x${string}`;
-const USDC_ADDR   = ADDRESSES.precompiles.erc20_mockUsdc.toLowerCase()    as `0x${string}`;
+
+// INTEGRATION_TOKEN: use the deployed MockERC20 (addresses.json) when the precompile
+// has zero supply. Falls back to precompile address if env var is explicitly set.
+const USDC_ADDR = (
+  process.env.INTEGRATION_TOKEN
+  || (ADDRESSES.mockErc20 ?? ADDRESSES.precompiles.erc20_mockUsdc)
+).toLowerCase() as `0x${string}`;
+
 const USDC_6 = (n: number) => parseUnits(String(n), 6);
 
 // ─── ABIs (inline minimal versions matching abis.ts) ─────────────────────
@@ -167,7 +174,8 @@ async function main() {
   console.log(`📋 Vault    : ${VAULT_ADDR}`);
   console.log(`📋 Escrow   : ${ESCROW_ADDR}`);
   console.log(`📋 SubMgr   : ${SUB_ADDR}`);
-  console.log(`📋 USDC     : ${USDC_ADDR}\n`);
+  const isMockErc20 = ADDRESSES.mockErc20 && USDC_ADDR === ADDRESSES.mockErc20.toLowerCase();
+  console.log(`📋 Token    : ${USDC_ADDR} ${isMockErc20 ? "(MockERC20)" : "(precompile)"}\n`);
 
   // ─── IT-01: ABI match ────────────────────────────────────────────────────
   await run("IT-01 ABI match: employeeCount() callable on deployed vault", async () => {
