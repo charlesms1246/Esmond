@@ -1,7 +1,11 @@
 // scripts/deploy/utils.ts
-import * as fs   from "fs";
-import * as path from "path";
+import * as dotenv from "dotenv";
+import * as path   from "path";
+import * as fs     from "fs";
 import type { JsonRpcProvider, TransactionReceipt } from "ethers";
+
+// Load .env from project root — required for ts-node scripts (hardhat run loads it via hardhat.config.ts)
+dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
 // ─── Network constants ────────────────────────────────────────────────────────
 export const PASEO_CHAIN_ID       = 420420422;

@@ -11,10 +11,10 @@
  * Reference: docs/TESTNET_WORKAROUNDS.md#WA-01
  */
 
-import { createClient }      from "polkadot-api";
-import { getWsProvider }     from "polkadot-api/ws-provider/node";
-import { getPolkadotSigner } from "polkadot-api/signer";
-import { ethers }            from "ethers";
+import { createClient, Binary } from "polkadot-api";
+import { getWsProvider }        from "polkadot-api/ws-provider";
+import { getPolkadotSigner }    from "polkadot-api/signer";
+import { ethers }               from "ethers";
 import { log, saveAddresses, PASEO_WS,
          MOCK_USDC_ASSET_ID, MOCK_USDT_ASSET_ID,
          MOCK_USDC_PRECOMPILE, MOCK_USDT_PRECOMPILE,
@@ -96,11 +96,12 @@ async function main() {
     }
 
     // Set metadata (idempotent — overwrite if needed)
+    // name/symbol are SCALE BoundedVec<u8> — must be Binary, not plain strings
     log(`Setting metadata for ${asset.symbol}...`);
     const metaTx = api.tx.Assets.set_metadata({
       id:       asset.id,
-      name:     asset.name,
-      symbol:   asset.symbol,
+      name:     Binary.fromText(asset.name),
+      symbol:   Binary.fromText(asset.symbol),
       decimals: asset.decimals,
     });
     const metaResult = await metaTx.signAndSubmit(signer);
