@@ -36,6 +36,8 @@
   ],
   "exclude": [
     "node_modules",
-    "jest.config.ts"
+    "jest.config.ts",
+    "jest.setup.ts",
+    "jest.env.ts"
   ]
 }
