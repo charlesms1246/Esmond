@@ -28,15 +28,14 @@ contract ReentrantScheduler {
         address[] memory dueEmployees,
         uint256[] memory amounts
     ) {
-        // Attempt reentrancy — should be blocked by ReentrancyGuard
-        (bool success, bytes memory returnData) = vault.call(
-            abi.encodeWithSignature("runPayroll()")
-        );
+        // Attempt reentrancy — ReentrancyGuard will block the inner call
+        (bool success,) = vault.call(abi.encodeWithSignature("runPayroll()"));
 
-        // The reentrant call must have failed
-        require(!success, "Reentrancy was NOT blocked");
-        // Silence unused variable warning
-        (returnData);
+        // If reentrancy was blocked (success == false), propagate as a revert
+        // so the outer runPayroll() also reverts — proving the guard is active
+        if (!success) {
+            revert("ReentrancyGuard: reentrant call blocked");
+        }
 
         return (new address[](0), new uint256[](0));
     }

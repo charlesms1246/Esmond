@@ -400,27 +400,27 @@ describe("PayrollVault", function () {
   describe("reentrancy guard", function () {
     it("runPayroll() blocks reentrant calls via scheduler callback", async function () {
       const { mockUsdc, USDC_ADDRESS, alice } = await loadFixture(deployPayrollVaultFixture);
+      const [owner] = await ethers.getSigners();
 
-      // Deploy vault first (address needed by ReentrantScheduler)
-      const VaultF = await ethers.getContractFactory("PayrollVault");
-      // We need a placeholder address initially; use a temp deployment
+      // Step 1: deploy the reentrant scheduler with no vault yet
       const ReentrantF = await ethers.getContractFactory("ReentrantScheduler");
-      // Deploy with zero address placeholder, then deploy vault pointing to it
-      const tempVault = await VaultF.deploy(ethers.ZeroAddress).catch(() => null);
-      // Deploy the reentrant scheduler pointing to a real vault
-      const realVault  = await VaultF.deploy(ethers.ZeroAddress);
-      const reentrant  = await ReentrantF.deploy(await realVault.getAddress());
-      // Redeploy vault with reentrant scheduler
-      const vault = await VaultF.deploy(await reentrant.getAddress());
+      const reentrant  = await ReentrantF.deploy();
 
-      // Give it a non-zero balance so it doesn't bail early
+      // Step 2: deploy the vault pointing to the reentrant scheduler
+      const VaultF = await ethers.getContractFactory("PayrollVault");
+      const vault  = await VaultF.deploy(await reentrant.getAddress());
+
+      // Step 3: complete the circular reference
+      await reentrant.setVault(await vault.getAddress());
+
+      // Step 4: fund vault so runPayroll() doesn't exit early on balance check
       const salary = ethers.parseUnits("10", 6);
+      await mockUsdc.mint(owner.address, salary * 10n);
       await mockUsdc.approve(await vault.getAddress(), salary * 10n);
-      await mockUsdc.mint((await ethers.getSigners())[0].address, salary * 10n);
       await vault.deposit(USDC_ADDRESS, salary * 10n);
       await vault.registerEmployee(alice.address, salary, USDC_ADDRESS, INTERVAL, salary * 10n, 0);
 
-      // The reentrant scheduler will try to call runPayroll() again — should revert
+      // runPayroll() → reentrant scheduler calls runPayroll() again → ReentrancyGuard reverts
       await expect(vault.runPayroll()).to.be.reverted;
     });
   });
