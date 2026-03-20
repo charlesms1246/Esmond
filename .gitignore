@@ -71,6 +71,36 @@ Thumbs.db
 # ─── Vercel ──────────────────────────────────────────────────────────────────
 .vercel
 
+# ─── Cypress test artifacts ──────────────────────────────────────────────────
+frontend/cypress/screenshots/
+frontend/cypress/videos/
+
+# ─── Agent / dev notes (not part of source) ──────────────────────────────────
+AGENTS.md
+BLOCKERS.md
+UNNECESSARY_FILES.txt
+prompts/
+docs/
+
+# ─── Scratch / output txt files ──────────────────────────────────────────────
+out.txt
+out1.txt
+run3.txt
+run4.txt
+run5.txt
+frontend/out1.txt
+frontend/out2.txt
+frontend/out3.txt
+frontend/output.txt
+frontend/output1.txt
+frontend/output2.txt
+
+# ─── Test results (generated artifacts) ──────────────────────────────────────
+test/results/
+
+# ─── Deployment keys ─────────────────────────────────────────────────────────
+deployments/paseo/.deployer_*
+
 # ─── Misc ────────────────────────────────────────────────────────────────────
 *.pid
 *.pid.lock
