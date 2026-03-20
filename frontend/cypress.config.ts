@@ -8,9 +8,9 @@ interface SendTxArgs {
     address:      `0x${string}`;
     abi:          any[];
     functionName: string;
-    args?:        any[];
-    gas?:         bigint;
-    value?:       bigint;
+    args?:        any[];        // uint256 values must be decimal strings (JSON-safe)
+    gas?:         string;       // decimal string, e.g. "200000"
+    value?:       string;       // decimal string
   };
 }
 
@@ -72,15 +72,27 @@ export default defineConfig({
             transport: http(rpc),
           });
 
+          // Cypress serialises task args through JSON, which cannot represent
+          // BigInt literals.  Convert decimal-string numbers back to BigInt so
+          // viem receives the correct types for uint256/uint32 parameters.
+          const coerceArg = (v: unknown): unknown => {
+            if (typeof v === "string" && /^\d+$/.test(v)) return BigInt(v);
+            if (Array.isArray(v)) return v.map(coerceArg);
+            return v;
+          };
+          const coercedArgs = (txParams.args ?? []).map(coerceArg);
+          const coercedGas  = txParams.gas   ? BigInt(txParams.gas)   : undefined;
+          const coercedVal  = txParams.value ? BigInt(txParams.value) : undefined;
+
           const hash = await walletClient.writeContract({
             account,
             chain:        chain as any,
             address:      txParams.address,
             abi:          txParams.abi,
             functionName: txParams.functionName,
-            args:         txParams.args ?? [],
-            gas:          txParams.gas,
-            value:        txParams.value,
+            args:         coercedArgs,
+            gas:          coercedGas,
+            value:        coercedVal,
           } as any);
 
           await publicClient.waitForTransactionReceipt({ hash });
