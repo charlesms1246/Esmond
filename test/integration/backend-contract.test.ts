@@ -152,7 +152,7 @@ async function run(name: string, fn: () => Promise<{ txHash?: string; note?: str
   try {
     const { txHash, note } = await fn();
     console.log(` ✅ PASS${note ? ` — ${note}` : ""}`);
-    if (txHash) console.log(`      https://blockscout-passet-hub.parity-testnet.parity.io/tx/${txHash}`);
+    if (txHash) console.log(`      https://blockscout-testnet.polkadot.io/tx/${txHash}`);
     results.push({ name, status: "PASS", txHash, note });
   } catch (err: any) {
     console.log(` ❌ FAIL — ${err.shortMessage ?? err.message}`);
@@ -536,7 +536,7 @@ async function main() {
     "| Test | Status | TX Hash | Note |",
     "|------|--------|---------|------|",
     ...results.map(r =>
-      `| ${r.name} | ${r.status} | ${r.txHash ? `[${r.txHash.slice(0, 10)}...](https://blockscout-passet-hub.parity-testnet.parity.io/tx/${r.txHash})` : "N/A"} | ${r.note ?? ""} |`
+      `| ${r.name} | ${r.status} | ${r.txHash ? `[${r.txHash.slice(0, 10)}...](https://blockscout-testnet.polkadot.io/tx/${r.txHash})` : "N/A"} | ${r.note ?? ""} |`
     ),
     "",
     `**Total: ${passed} PASS, ${failed} FAIL**`,
