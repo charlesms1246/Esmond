@@ -36,6 +36,7 @@
   ],
   "exclude": [
     "node_modules",
+    "cypress",
     "jest.config.ts",
     "jest.setup.ts",
     "jest.env.ts"
