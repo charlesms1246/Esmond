@@ -101,7 +101,7 @@ async function main() {
   log(`SubscriptionManager: ${subAddr}`);
   log(`XCM Precompile:      ${XCM_PRECOMPILE}`);
   log(`Mock USDC Precompile:${addresses.precompiles?.erc20_mockUsdc}`);
-  log(`Blockscout:          https://blockscout-passet-hub.parity-testnet.parity.io`);
+  log(`Blockscout:          https://blockscout-testnet.polkadot.io`);
   log("========================================\n");
   log("=== Step 3 Complete ===");
 }
