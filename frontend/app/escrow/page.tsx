@@ -51,7 +51,7 @@ export default function EscrowPage() {
     <div className="flex flex-col gap-8">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Milestone Escrow</h1>
+          <h1 className="heading-gradient text-3xl font-bold">Milestone Escrow</h1>
           <p className="mt-1 text-sm text-[var(--text-secondary)]">
             Trustless deliverable-based conditional payments
           </p>

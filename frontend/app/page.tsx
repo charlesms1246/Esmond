@@ -18,9 +18,8 @@ export default function DashboardPage() {
     <div className="flex flex-col gap-10">
       {/* Hero */}
       <section className="text-center py-10">
-        <h1 className="text-5xl font-bold mb-4 tracking-tight">
-          Programmable{" "}
-          <span style={{ color: "var(--dot-pink)" }}>Payments</span>
+        <h1 className="heading-gradient text-5xl font-bold mb-4 tracking-tight">
+          Programmable Payments
           <br />on Polkadot Hub
         </h1>
         <p className="text-[var(--text-secondary)] text-lg max-w-2xl mx-auto">

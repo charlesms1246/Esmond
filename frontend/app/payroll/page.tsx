@@ -27,7 +27,7 @@ export default function PayrollPage() {
     <div className="flex flex-col gap-8">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Payroll Vault</h1>
+          <h1 className="heading-gradient text-3xl font-bold">Payroll Vault</h1>
           <p className="mt-1 text-sm text-[var(--text-secondary)]">
             Recurring salary payments via Asset Hub + XCM routing
           </p>
