@@ -8,7 +8,7 @@ dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
 export const RPC      = process.env.PASEO_RPC_URL || "https://eth-rpc-testnet.polkadot.io/";
 export const CHAIN_ID = 420420417;
-export const BLOCKSCOUT = "https://blockscout-passet-hub.parity-testnet.parity.io";
+export const BLOCKSCOUT = "https://blockscout-testnet.polkadot.io";
 
 export function loadAddresses() {
   const p = path.join(__dirname, "../../deployments/paseo/addresses.json");
@@ -86,7 +86,7 @@ export const SUBSCRIPTION_ABI = [
   "function revoke(uint256 subscriptionId)",
   "function planCount() view returns (uint256)",
   "event PlanCreated(uint256 indexed planId, address indexed provider, address token, uint256 chargeAmount, uint256 interval)",
-  "event Subscribed(uint256 indexed subscriptionId, uint256 indexed planId, address indexed subscriber, uint256 approvedCap)",
+  "event Subscribed(uint256 indexed subscriptionId, address indexed subscriber, uint256 indexed planId, uint256 approvedCap)",
   "event Charged(uint256 indexed subscriptionId, address indexed provider, uint256 amount, uint256 nextChargeDue)",
   "event Revoked(uint256 indexed subscriptionId, address indexed subscriber)",
 ];
