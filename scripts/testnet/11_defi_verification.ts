@@ -327,15 +327,16 @@ async function main() {
     const delta = payeeBalAfter - payeeBalBefore;
     const m = await escrow.getMilestone(milestone21Id);
 
+    // Use staticCall to detect on-chain revert WITHOUT broadcasting (avoids nonce pollution).
+    // Explicit gasLimit would bypass ethers v6 gas estimation and miss on-chain reverts.
     let doubleApproveReverted = false;
     try {
-      await escrow.approveMilestone(milestone21Id, { gasLimit: 300_000, gasPrice: GAS_PRICE });
+      await escrow.approveMilestone.staticCall(milestone21Id);
     } catch {
       doubleApproveReverted = true;
     }
 
     // Primary claim: funds released to payee. Double-approve guard is a secondary safety property.
-    // The contract may allow double-approve calls after release without reverting (no-op).
     record("2.2 Single-approver release",
       m.released && delta === AMOUNT ? "PASS" : "FAIL",
       approveTx.hash,
@@ -346,8 +347,9 @@ async function main() {
     record("2.2 Single-approver release", "FAIL", undefined, e.message.slice(0, 120));
   }
 
-  // Allow mempool to clear before next section (prevents "Priority too low" errors)
-  await sleep(4_000);
+  // Allow mempool to clear before next section (prevents "Priority too low" errors).
+  // 8s gives enough time for any pending txs to mine before 2.3 starts.
+  await sleep(8_000);
 
   // ─── Claim 2.3: 2-of-3 approver threshold ────────────────────────────────
   console.log("\n--- Claim 2.3: 2-of-3 approver threshold ---");
@@ -411,8 +413,13 @@ async function main() {
   // ─── Claim 2.4: Reclaim after deadline ───────────────────────────────────
   console.log("\n--- Claim 2.4: Reclaim path ---");
   try {
-    const AMOUNT        = ethers.parseUnits("20", 6);
-    const shortDeadline = BigInt(Math.floor(Date.now() / 1000) + 3);
+    const AMOUNT = ethers.parseUnits("20", 6);
+    // Use CHAIN block timestamp (not client clock) — Paseo block timestamps can lag wall clock.
+    // Set deadline 30s ahead in chain time so createMilestone passes the "deadline in future" check,
+    // then wait 45s (wall clock) which advances chain time past that deadline.
+    const latestBlk  = await provider.getBlock('latest');
+    const chainNow   = BigInt(latestBlk!.timestamp);
+    const shortDeadline = chainNow + 30n;
 
     const approveTx = await erc20.approve(ESCROW_ADDR, AMOUNT, { gasLimit: 200_000, gasPrice: GAS_PRICE });
     await waitConfirmed(provider, approveTx.hash, "approve for reclaim milestone");
@@ -427,8 +434,8 @@ async function main() {
     const createdEv = parseEvent(createReceipt, ESCROW_ABI_EXT, "MilestoneCreated");
     const mid = createdEv?.args.id ?? 0n;
 
-    console.log("Waiting 12 seconds for deadline to pass (3s deadline + 1 block)...");
-    await sleep(12_000);
+    console.log("Waiting 45 seconds for deadline to pass (30s chain-time deadline)...");
+    await sleep(45_000);
 
     const payerBalBefore = await erc20.balanceOf(DEPLOYER) as bigint;
     const reclaimTx      = await escrow.reclaimExpired(mid, { gasLimit: 200_000, gasPrice: GAS_PRICE });
@@ -439,14 +446,15 @@ async function main() {
     const delta  = payerBalAfter - payerBalBefore;
     const mAfter = await escrow.getMilestone(mid);
 
+    // staticCall to detect on-chain reverts without broadcasting (avoids nonce pollution)
     let doubleReclaimReverted = false;
     try {
-      await escrow.reclaimExpired(mid, { gasLimit: 200_000, gasPrice: GAS_PRICE });
+      await escrow.reclaimExpired.staticCall(mid);
     } catch { doubleReclaimReverted = true; }
 
     let approveAfterReclaimReverted = false;
     try {
-      await escrow.approveMilestone(mid, { gasLimit: 200_000, gasPrice: GAS_PRICE });
+      await escrow.approveMilestone.staticCall(mid);
     } catch { approveAfterReclaimReverted = true; }
 
     // Primary claim: payer recovers funds after deadline, and approve-after-reclaim is blocked.
@@ -510,10 +518,12 @@ async function main() {
     console.log("Waiting 6 seconds for interval...");
     await sleep(6_000);
 
+    // staticCall simulates on-chain execution and detects reverts without broadcasting.
+    // Explicit gasLimit on a real tx bypasses ethers v6 gas estimation → misses on-chain reverts.
     let charge2Reverted = false;
     let charge2Error    = "";
     try {
-      await subMgr.charge(subId, { gasLimit: 300_000, gasPrice: GAS_PRICE });
+      await subMgr.charge.staticCall(subId);
     } catch (err: any) {
       charge2Reverted = true;
       charge2Error    = err.message.slice(0, 80);
@@ -568,9 +578,10 @@ async function main() {
     console.log("Waiting 6 seconds...");
     await sleep(6_000);
 
+    // staticCall — detects "Subscription not active" revert without broadcasting
     let postRevokeReverted = false;
     try {
-      await subMgr.charge(subId, { gasLimit: 300_000, gasPrice: GAS_PRICE });
+      await subMgr.charge.staticCall(subId);
     } catch { postRevokeReverted = true; }
 
     record("3.2 Subscriber revoke stops charges",
@@ -622,10 +633,11 @@ async function main() {
       console.log(`First charge failed: ${err.message.slice(0, 80)}`);
     }
 
-    // Immediate second charge — must revert (nextChargeDue = now + 1 day)
+    // Immediate second charge — must revert with "Not due yet" (nextChargeDue = now + 1 day).
+    // staticCall simulates without broadcasting so the "Not due yet" revert is detected correctly.
     let immediateChargeReverted = false;
     try {
-      await subMgr.charge(subId, { gasLimit: 300_000, gasPrice: GAS_PRICE });
+      await subMgr.charge.staticCall(subId);
     } catch { immediateChargeReverted = true; }
 
     record("3.3 Provider cannot charge before nextChargeDue",
