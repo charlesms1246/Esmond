@@ -18,7 +18,7 @@ export const PASEO_RPC      = PASEO_EVM_RPC;
 // Paseo Asset Hub native Substrate WebSocket (for @polkadot/api and PAPI)
 export const PASEO_WS       = process.env.PASEO_WS_URL  || "wss://passet-hub-rpc.polkadot.io";
 
-export const BLOCKSCOUT_URL = "https://blockscout-passet-hub.parity-testnet.parity.io";
+export const BLOCKSCOUT_URL = "https://blockscout-testnet.polkadot.io";
 
 // ─── Precompile addresses (do not modify) ─────────────────────────────────────
 // XCM precompile — from polkadot-sdk pallet-xcm
