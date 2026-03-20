@@ -31,8 +31,8 @@ const config: HardhatUserConfig = {
       network: "paseo",
       chainId: 420420417,
       urls: {
-        apiURL:     "https://blockscout-passet-hub.parity-testnet.parity.io/api",
-        browserURL: "https://blockscout-passet-hub.parity-testnet.parity.io",
+        apiURL:     "https://blockscout-testnet.polkadot.io/api",
+        browserURL: "https://blockscout-testnet.polkadot.io",
       },
     }],
   },
