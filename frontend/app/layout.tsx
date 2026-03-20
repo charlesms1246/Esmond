@@ -6,7 +6,17 @@ import { NavBar }    from "@/components/NavBar";
 export const metadata: Metadata = {
   title:       "Esmond — Programmable Payment Engine",
   description: "On-chain payroll, milestone escrow, and subscription billing on Polkadot Hub",
-  icons:       { icon: "/favicon.ico" },
+  icons: {
+    icon: [
+      { url: "/esmond_favicon/favicon.ico" },
+      { url: "/esmond_favicon/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/esmond_favicon/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple:   { url: "/esmond_favicon/apple-touch-icon.png" },
+    other: [
+      { rel: "manifest", url: "/esmond_favicon/site.webmanifest" },
+    ],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
