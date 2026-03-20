@@ -13,7 +13,7 @@
   "contracts": {
     "PayrollScheduler": "NOT_DEPLOYED",
     "PayrollSchedulerFallback": "0x4AF0E18ec88C5EE520378e1c2ad65862120E4bCB",
-    "PayrollVault": "0xFebcB30Ff5c4894Ad2615237A1211771db865e5E",
+    "PayrollVault": "0x2bd64C1f0505fF20869EEcd06c05c3F1D138AF21",
     "ConditionalEscrow": "0x5a7c76a67E231DfE89b29c8Fd0f82d2A2697BAaA",
     "SubscriptionManager": "0x29420F825ED2D26970BDfB8eCDB03F0ba1B94679"
   },
@@ -23,8 +23,9 @@
   "deployedAt": "2026-03-19T09:10:14.888Z",
   "deployerAddress": "0xc618931C93cae544608347a7b733607A25BB20Ff",
   "step1_completed": "2026-03-19T09:10:14.889Z",
-  "updatedAt": "2026-03-19T12:56:03.201Z",
+  "updatedAt": "2026-03-20T10:19:41.529Z",
   "step2_completed": "2026-03-19T09:11:57.181Z",
   "step3_completed": "2026-03-19T09:13:52.371Z",
-  "mockErc20": "0xA01337C3a4008BaABfef5472bEfAf1C4Dbf8C243"
+  "mockErc20": "0xA01337C3a4008BaABfef5472bEfAf1C4Dbf8C243",
+  "step6_completed": "2026-03-20T10:19:41.529Z"
 }

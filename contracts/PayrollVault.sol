@@ -144,6 +144,7 @@ contract PayrollVault is Ownable, ReentrancyGuard {
         uint256[] memory nextDue    = new uint256[](count);
         uint256[] memory caps       = new uint256[](count);
         uint256   activeCount       = 0;
+        address   payToken          = address(0);  // Captured from first active employee
 
         for (uint256 i = 0; i < count; i++) {
             if (employees[i].active) {
@@ -151,6 +152,7 @@ contract PayrollVault is Ownable, ReentrancyGuard {
                 salaries[activeCount] = employees[i].salaryAmount;
                 nextDue[activeCount]  = employees[i].nextPaymentDue;
                 caps[activeCount]     = employees[i].approvedCap;
+                if (activeCount == 0) payToken = employees[i].payToken;
                 activeCount++;
             }
         }
@@ -174,9 +176,8 @@ contract PayrollVault is Ownable, ReentrancyGuard {
         if (dueEmployees.length == 0) return;  // No one is due — exit cleanly
 
         // ── Step 3: Preflight balance check ──────────────────────────────────
-        // NOTE: This simplified version uses the first active employee's token.
+        // payToken was captured from the first active employee in Step 1.
         // MVP scope: single-token payroll (per spec §11.2 — multi-token is Phase 2)
-        address payToken = employees[0].payToken;
         uint256 totalPayout = 0;
         for (uint256 i = 0; i < amounts.length; i++) {
             totalPayout += amounts[i];
@@ -212,19 +213,16 @@ contract PayrollVault is Ownable, ReentrancyGuard {
             }
         }
 
-        // ── Step 5a: Hub employees — execute() (local, same-block settlement) ─
+        // ── Step 5a: Hub employees — direct ERC-20 transfer (same-chain) ───────
+        // XCM execute() requires a real Asset Hub precompile asset ID; MockERC20
+        // is a deployed contract whose address does not map to a registered asset,
+        // so we use IERC20.transfer() directly for Hub-local (parachainId == 0) payroll.
         if (hubCount > 0) {
             for (uint256 i = 0; i < hubCount; i++) {
-                bytes memory xcmMsg = _encodeHubTransfer(
-                    hubWallets[i],
-                    hubAmounts[i],
-                    payToken
+                require(
+                    IERC20(payToken).transfer(hubWallets[i], hubAmounts[i]),
+                    "Hub transfer failed"
                 );
-                IXcm.Weight memory w = IXcm(XCM_PRECOMPILE).weighMessage(xcmMsg);
-                // Apply 20% weight buffer
-                w.refTime   = w.refTime   * WEIGHT_BUFFER_NUM / WEIGHT_BUFFER_DEN;
-                w.proofSize = w.proofSize * WEIGHT_BUFFER_NUM / WEIGHT_BUFFER_DEN;
-                IXcm(XCM_PRECOMPILE).execute(xcmMsg, w);
             }
         }
 

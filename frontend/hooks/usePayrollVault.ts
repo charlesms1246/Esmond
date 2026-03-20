@@ -62,6 +62,7 @@ export function useVaultAllowance(tokenAddress?: `0x${string}`) {
  * Step 1: approve(vault, amount) on the ERC-20 precompile
  * Step 2: wait for approve tx to be mined (required — deposit calls transferFrom)
  * Step 3: deposit(token, amount) on PayrollVault
+ * Step 4: wait for deposit tx to be mined and check it didn't revert
  */
 export function useDeposit() {
   const { writeContractAsync }  = useWriteContract();
@@ -86,7 +87,11 @@ export function useDeposit() {
       setTxStatus({ status: "pending", hash: approveTxHash });
 
       // Step 2: wait for approval to be mined before transferFrom can succeed
-      await publicClient.waitForTransactionReceipt({ hash: approveTxHash });
+      const approveReceipt = await publicClient.waitForTransactionReceipt({ hash: approveTxHash });
+      if (approveReceipt.status === "reverted") {
+        setTxStatus({ status: "error", error: "Approval transaction reverted on-chain" });
+        return;
+      }
 
       // Step 3: deposit
       const depositTxHash = await writeContractAsync({
@@ -96,6 +101,15 @@ export function useDeposit() {
         args:         [tokenAddress, amount],
         gas:          300_000n,
       });
+      setTxStatus({ status: "pending", hash: depositTxHash });
+
+      // Step 4: wait for deposit to be mined and verify it succeeded
+      const depositReceipt = await publicClient.waitForTransactionReceipt({ hash: depositTxHash });
+      if (depositReceipt.status === "reverted") {
+        setTxStatus({ status: "error", error: "Deposit transaction reverted on-chain" });
+        return;
+      }
+
       setTxStatus({ status: "success", hash: depositTxHash });
       return depositTxHash;
     } catch (err: any) {
@@ -110,6 +124,7 @@ export function useDeposit() {
 // ─── Write: register employee ─────────────────────────────────────────────
 export function useRegisterEmployee() {
   const { writeContractAsync }  = useWriteContract();
+  const publicClient            = usePublicClient();
   const [txStatus, setTxStatus] = useState<TxStatus>({ status: "idle" });
 
   const registerEmployee = useCallback(async (params: {
@@ -120,6 +135,7 @@ export function useRegisterEmployee() {
     cap:         bigint;
     parachainId: number;
   }) => {
+    if (!publicClient) throw new Error("No public client");
     setTxStatus({ status: "pending" });
     try {
       const hash = await writeContractAsync({
@@ -136,13 +152,22 @@ export function useRegisterEmployee() {
         ],
         gas: 300_000n,
       });
+      setTxStatus({ status: "pending", hash });
+
+      // Wait for the transaction to be included in a block
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      if (receipt.status === "reverted") {
+        setTxStatus({ status: "error", error: "Transaction reverted on-chain (check you are the vault owner)" });
+        return;
+      }
+
       setTxStatus({ status: "success", hash });
       return hash;
     } catch (err: any) {
       setTxStatus({ status: "error", error: err.shortMessage ?? err.message });
       throw err;
     }
-  }, [writeContractAsync]);
+  }, [writeContractAsync, publicClient]);
 
   return { registerEmployee, txStatus };
 }
@@ -150,9 +175,11 @@ export function useRegisterEmployee() {
 // ─── Write: run payroll ───────────────────────────────────────────────────
 export function useRunPayroll() {
   const { writeContractAsync }  = useWriteContract();
+  const publicClient            = usePublicClient();
   const [txStatus, setTxStatus] = useState<TxStatus>({ status: "idle" });
 
   const runPayroll = useCallback(async () => {
+    if (!publicClient) throw new Error("No public client");
     setTxStatus({ status: "pending" });
     try {
       const hash = await writeContractAsync({
@@ -161,13 +188,22 @@ export function useRunPayroll() {
         functionName: "runPayroll",
         gas:          2_000_000n,  // generous limit for XCM + cross-VM calls
       });
+      setTxStatus({ status: "pending", hash });
+
+      // Wait for the transaction to be included in a block
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      if (receipt.status === "reverted") {
+        setTxStatus({ status: "error", error: "Payroll transaction reverted on-chain (check vault balance and employee setup)" });
+        return;
+      }
+
       setTxStatus({ status: "success", hash });
       return hash;
     } catch (err: any) {
       setTxStatus({ status: "error", error: err.shortMessage ?? err.message });
       throw err;
     }
-  }, [writeContractAsync]);
+  }, [writeContractAsync, publicClient]);
 
   return { runPayroll, txStatus };
 }
