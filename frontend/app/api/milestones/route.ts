@@ -36,22 +36,29 @@ export async function GET() {
 
     const now = BigInt(Math.floor(Date.now() / 1000));
 
+    // viem returns a plain array for flat named outputs (not a named object)
+    // Index mapping: 0=payer, 1=payee, 2=token, 3=amount, 4=approvers,
+    //                5=approvalsRequired, 6=approvalCount, 7=disputeDeadline, 8=released, 9=reclaimed
     const dtos: MilestoneDTO[] = milestones.map((m: any, i: number) => {
+      const released         = m[8]  as boolean;
+      const reclaimed        = m[9]  as boolean;
+      const disputeDeadline  = m[7]  as bigint;
+
       let status: MilestoneDTO["status"] = "active";
-      if (m.released)  status = "released";
-      else if (m.reclaimed) status = "reclaimed";
-      else if (m.disputeDeadline > 0n && m.disputeDeadline < now) status = "expired";
+      if (released)  status = "released";
+      else if (reclaimed) status = "reclaimed";
+      else if (disputeDeadline > 0n && disputeDeadline < now) status = "expired";
 
       return {
         id:                String(i),
-        payer:             m.payer,
-        payee:             m.payee,
-        token:             m.token,
-        amount:            String(m.amount),
-        approvers:         [...m.approvers],
-        approvalsRequired: String(m.approvalsRequired),
-        approvalCount:     String(m.approvalCount),
-        disputeDeadline:   String(m.disputeDeadline),
+        payer:             m[0] as string,
+        payee:             m[1] as string,
+        token:             m[2] as string,
+        amount:            String(m[3] as bigint),
+        approvers:         Array.from((m[4] as string[]) ?? []),
+        approvalsRequired: String(m[5] as bigint),
+        approvalCount:     String(m[6] as bigint),
+        disputeDeadline:   String(disputeDeadline),
         status,
       };
     });

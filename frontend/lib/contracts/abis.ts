@@ -133,23 +133,24 @@ export const CONDITIONAL_ESCROW_ABI = [
   },
   // ── View functions ───────────────────────────────────────────────────────
   {
+    // getMilestone returns individual named values (not a struct), so outputs must be
+    // flat — NOT a single tuple. A single-tuple output adds an extra offset indirection
+    // layer that misaligns the ABI decode when the return contains a dynamic type
+    // (address[]).  Flat named outputs = correct encoding match.
     type: "function", name: "getMilestone",
     inputs: [{ name: "id", type: "uint256" }],
-    outputs: [{
-      type: "tuple",
-      components: [
-        { name: "payer",             type: "address"   },
-        { name: "payee",             type: "address"   },
-        { name: "token",             type: "address"   },
-        { name: "amount",            type: "uint256"   },
-        { name: "approvers",         type: "address[]" },
-        { name: "approvalsRequired", type: "uint256"   },
-        { name: "approvalCount",     type: "uint256"   },
-        { name: "disputeDeadline",   type: "uint256"   },
-        { name: "released",          type: "bool"      },
-        { name: "reclaimed",         type: "bool"      },
-      ],
-    }],
+    outputs: [
+      { name: "payer",             type: "address"   },
+      { name: "payee",             type: "address"   },
+      { name: "token",             type: "address"   },
+      { name: "amount",            type: "uint256"   },
+      { name: "approvers",         type: "address[]" },
+      { name: "approvalsRequired", type: "uint256"   },
+      { name: "approvalCount",     type: "uint256"   },
+      { name: "disputeDeadline",   type: "uint256"   },
+      { name: "released",          type: "bool"      },
+      { name: "reclaimed",         type: "bool"      },
+    ],
     stateMutability: "view",
   },
   {
