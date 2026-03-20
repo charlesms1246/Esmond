@@ -14,9 +14,9 @@ export const CHAIN_ID = 420420417 as const;
 // These are FIXED — they never change regardless of deployment
 // Formula: 0xFFFFFFFF + 12×0x00 + assetId(4 bytes BE)
 export const PRECOMPILES = {
-  XCM:       "0x00000000000000000000000000000000000A0000" as `0x${string}`,
-  MOCK_USDC: "0xFFFFFFFF000000000000000000000000000007C0"  as `0x${string}`, // assetId 1984
-  MOCK_USDT: "0xFFFFFFFF00000000000000000000000000000539"  as `0x${string}`, // assetId 1337
+  XCM:       "0x00000000000000000000000000000000000a0000" as `0x${string}`,
+  MOCK_USDC: "0xfFfFfFFf000000000000000000000000000007C0" as `0x${string}`, // assetId 1984
+  MOCK_USDT: "0xFFfFFffF00000000000000000000000000000539" as `0x${string}`, // assetId 1337
 } as const;
 
 // ─── Asset IDs (for PAPI substrate-level queries) ─────────────────────────
